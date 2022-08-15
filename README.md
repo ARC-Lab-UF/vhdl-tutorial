@@ -18,7 +18,7 @@ I am frequently asked which RTL language is "best," or why I prefer one over ano
 
 # Suggested Study Order
 
-1. [Combinational Logic]()
+1. [Combinational Logic](./combinational)
 1. [Structural Architectures]()
 1. [Sequential Logic]()
 1. [Finite-State Machines]()
