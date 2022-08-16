@@ -60,6 +60,14 @@ begin
         valid  <= '0';
         output <= (others => '0');
 
+        -- Since we don't know the number of inputs, we have to use a loop
+        -- to define the behavior. VHDL has a for loop construct, which is
+        -- a sequential statement, and therefore has to be inside a process.
+
+        -- In this architecture, we iterate up from 0, which naturally handles
+        -- the desired priority since later iterations will change the value
+        -- of the output when appropriate.
+        
         for i in 0 to NUM_OUTPUTS-1 loop
             if (inputs(i) = '1') then
                 output <= std_logic_vector(to_unsigned(i), NUM_OUTPUTS);
@@ -79,6 +87,13 @@ begin
         valid  <= '0';
         output <= (others => '0');
 
+        -- In this architecture, we iterate down from NUM_INPUTS-1. The
+        -- advantage of this approach is that we can use the break statement
+        -- to exit the loop after finding the first asserted input bit. While
+        -- this shouldn't have an effect on synthesis (both architectures
+        -- synthesize the same in my tests), this architecture might have
+        -- faster simulation times.
+        
         for i in NUM_INPUTS-1 downto 0 loop
             if (inputs(i) = '1') then
                 output <= std_logic_vector(to_unsigned(i), NUM_OUTPUTS);
