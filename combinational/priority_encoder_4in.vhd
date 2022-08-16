@@ -7,6 +7,20 @@
 
 entity priority_encoder_4in is
     port (
+        -- We could potentially use 4 separate std_logic inputs, but it is
+        -- much more convenient to use and array of std_logic, which
+        -- conveniently has its own type in VHDL: std_logic_vector.
+        -- In the parentheses after the std_logic_vector key word, you must
+        -- specify a range. There are two different range styles: downto and
+        -- to. The more common convention for std_logic_vector is downto, where
+        -- for an n-bit signal, the most-significant bit is n-1 and the least-
+        -- significant bit is 0. Alternatively, we could have used (0 to 3).
+        --
+        -- My personal convention is to normally use downto for
+        -- std_logic_vector. When working with other arrays (covered later),
+        -- I often use 0 to n-1 because I'm used to thinking of the first
+        -- element of an array at index 0.
+        
         inputs : in  std_logic_vector(3 downto 0);
         valid  : out std_logic;
         result : out std_logic_vector(1 downto 0)
@@ -22,7 +36,9 @@ begin
     process(inputs)
     begin
         if (inputs(3) = '1') then
+            -- Std_logic_vector literals use double quotes.
             result <= "11";
+            -- Valid is std_logic, so its literal still uses single quotes.
             valid  <= '1';
         elsif (inputs(2) = '1') then
             result <= "10";
