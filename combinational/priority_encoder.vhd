@@ -50,7 +50,7 @@ entity priority_encoder is
 end priority_encoder;
 
 
-architecture ARCH1 of priority_encoder is
+architecture arch1 of priority_encoder is
 
     constant NUM_OUTPUTS : integer := integer(ceil(log2(real(NUM_INPUTS))));
 begin
@@ -75,9 +75,9 @@ begin
             end if;
         end loop;
     end process;
-end ARCH1;
+end arch1;
 
-architecture ARCH2 of priority_encoder is
+architecture arch2 of priority_encoder is
 
     constant NUM_OUTPUTS : integer := integer(ceil(log2(real(NUM_INPUTS))));
 begin
@@ -102,14 +102,15 @@ begin
             end if;
         end loop;
     end process;
-end ARCH2;
+end arch2;
 
 
 architecture default_arch of priority_encoder is
 begin
     -- INSTRUCTIONS: Change the architecture name to simulate/synthesize
     -- each architecture
-    UUT : entity work.priority_encoder(ARCH1)
+    UUT : entity work.priority_encoder(arch1)
+    --UUT : entity work.priority_encoder(arch2)
         generic map (NUM_INPUTS => NUM_INPUTS)
         port map (inputs => inputs,
                   valid  => valid,
