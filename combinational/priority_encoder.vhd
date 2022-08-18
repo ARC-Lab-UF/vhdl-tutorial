@@ -28,7 +28,7 @@ entity priority_encoder is
         -- has much more formal support for validation parameter values at
         -- compile time.
 
-        NUM_INPUTS : positive := 4;
+        NUM_INPUTS : positive := 4
         );    
     port (
         inputs : in  std_logic_vector(NUM_INPUTS-1 downto 0);
@@ -45,7 +45,7 @@ entity priority_encoder is
         -- NUM_INPUTS generic. There is no simple way of doing this in pre-2008
         -- VHDL, but the tutorial will illustrate several workarounds in later
         -- examples.
-        result : out std_logic_vector(integer(ceil(log2(real(NUM_INPUTS)))))-1 downto 0)
+        result : out std_logic_vector(integer(ceil(log2(real(NUM_INPUTS))))-1 downto 0)
         );
 end priority_encoder;
 
@@ -58,7 +58,7 @@ begin
     process(inputs)
     begin
         valid  <= '0';
-        output <= (others => '0');
+        result <= (others => '0');
 
         -- Since we don't know the number of inputs, we have to use a loop
         -- to define the behavior. VHDL has a for loop construct, which is
@@ -66,11 +66,11 @@ begin
 
         -- In this architecture, we iterate up from 0, which naturally handles
         -- the desired priority since later iterations will change the value
-        -- of the output when appropriate.
+        -- of the result when appropriate.
         
-        for i in 0 to NUM_OUTPUTS-1 loop
+        for i in 0 to NUM_INPUTS-1 loop
             if (inputs(i) = '1') then
-                output <= std_logic_vector(to_unsigned(i), NUM_OUTPUTS);
+                result <= std_logic_vector(to_unsigned(i, NUM_OUTPUTS));
                 valid  <= '1';
             end if;
         end loop;
@@ -85,7 +85,7 @@ begin
     process(inputs)
     begin
         valid  <= '0';
-        output <= (others => '0');
+        result <= (others => '0');
 
         -- In this architecture, we iterate down from NUM_INPUTS-1. The
         -- advantage of this approach is that we can use the break statement
@@ -96,16 +96,16 @@ begin
         
         for i in NUM_INPUTS-1 downto 0 loop
             if (inputs(i) = '1') then
-                output <= std_logic_vector(to_unsigned(i), NUM_OUTPUTS);
+                result <= std_logic_vector(to_unsigned(i, NUM_OUTPUTS));
                 valid  <= '1';
-                break;
+                exit;
             end if;
         end loop;
     end process;
 end ARCH2;
 
 
-architecture default of priority_encoder is
+architecture default_arch of priority_encoder is
 begin
     -- INSTRUCTIONS: Change the architecture name to simulate/synthesize
     -- each architecture
@@ -113,8 +113,8 @@ begin
         generic map (NUM_INPUTS => NUM_INPUTS)
         port map (inputs => inputs,
                   valid  => valid,
-                  output => output);
-end default;
+                  result => result);
+end default_arch;
 
 
 

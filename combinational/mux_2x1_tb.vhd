@@ -9,7 +9,7 @@ entity mux_2x1_tb is
 end mux_2x1_tb;
 
 
-architecture default of mux_2x1_tb is
+architecture default_tb of mux_2x1_tb is
 
   signal in1                : std_logic;
   signal in2                : std_logic;
@@ -66,7 +66,7 @@ begin  -- TB
     end mux_test;
 
   begin
-    -- test all input combinations
+    -- Test all input combinations
     for i in 0 to 7 loop
       temp := std_logic_vector(to_unsigned(i, 3));
       in1 <= temp(2);
@@ -91,4 +91,4 @@ begin  -- TB
 
   end process;
 
-end TB;
+end default_tb;
