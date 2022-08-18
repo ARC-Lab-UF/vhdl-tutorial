@@ -21,10 +21,10 @@ As with all circuits, first design the combinational circuit, then write the cod
     - Introduces constants.
     - Introduces how to convert an integer to any number of bits to avoid width-mismatch problems.
 1. [Adders](./add.vhd)
-    - Introduces arithmetic operations, sign extension, concatenation, type casting.
+    - Introduces arithmetic operations, signed and unsigned, sign extension, concatenation, type casting.
     - Demonstrates the differences between three different package combinations for arithmetic operations. 
-1. [Multipliers (TBD)]()
-    - Introduces signed and unsigned, generate statements, variable scope, slicing, and hiearchical access of generate blocks.
+1. [Multipliers](./mult.vhd)
+    - Introduces multiplication, if-generate statements, and slicing.
     -Testbench tests signed and unsigned instances simultaneously.    
 1. [ALU (TBD)]()
     - Introduces common problems with latches, strategies for avoiding latches, local parameters, and tasks.    
