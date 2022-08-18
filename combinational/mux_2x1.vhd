@@ -34,8 +34,8 @@ entity mux_2x1 is
     -- than signals.
 
     port(
+        in0    : in  std_logic;
         in1    : in  std_logic;
-        in2    : in  std_logic;
         sel    : in  std_logic;
         output : out std_logic);
 end mux_2x1;
@@ -78,7 +78,7 @@ end mux_2x1;
 -- produces the same outputs. The circuit will also produce the output in the
 -- same cycle as the code.
 
-architecture IF_STATEMENT of mux_2x1 is
+architecture if_statement of mux_2x1 is
 begin
 
     -- *********************************************************************
@@ -97,7 +97,7 @@ begin
     -- or
     --    always_comb
 
-    process(in1, in2, sel)
+    process(in0, in1, sel)
     begin
         -- Compare the select value with a single 0 bit ('0')
         --
@@ -114,30 +114,30 @@ begin
 
         if (sel = '0') then
             -- Signal assignments are done with the <= operator. 
-            output <= in1;
+            output <= in0;
         else
-            output <= in2;
+            output <= in1;
         end if;
     end process;
-end IF_STATEMENT;
+end if_statement;
 
 
 -- In this architecture, we define the behavior similarly using a case statement
 -- instead of an in statement. Like the if, the case is also a sequential
 -- statement and must therefore be inside a process/
 
-architecture CASE_STATEMENT of mux_2x1 is
+architecture case_statement of mux_2x1 is
 begin
 
     -- Same guideline as before, make sure all inputs are in the sensitivy list
-    process(in1, in2, sel)
+    process(in0, in1, sel)
     begin
         -- Case statement is similar to the if, but only one case can be true.
         case sel is
             when '0' =>
-                output <= in1;
+                output <= in0;
             when others =>
-                output <= in2;
+                output <= in1;
         end case;
 
 -- I sometimes do this when I want to catch a non '0' or '1' value in
@@ -146,14 +146,14 @@ begin
 -- when others because only the '0' and '1' have meaning in a real circuit.
 -- case sel is
 -- when '0' =>
--- output <= in1;
+-- output <= in0;
 -- when '1' =>
--- output <= in2;
+-- output <= in1;
 -- when others =>
 -- null;
 -- end case;
     end process;
-end CASE_STATEMENT;
+end case_statement;
 
 
 
@@ -172,22 +172,22 @@ end CASE_STATEMENT;
 
 -- Here we use a when-else statement to define the mux.
 
-architecture WHEN_ELSE of mux_2x1 is
+architecture when_else of mux_2x1 is
 begin
     -- The when-else is a concurrent equivalent to the sequential if statement.
-    output <= in1 when sel = '0' else in2;
+    output <= in0 when sel = '0' else in1;
 
     -- Like before, you have also done something like this for simulation
     -- purposes. However, I don't recommend this unless you have a good reason. 
---    output <= in1 when sel = '0' else
---              in2 when sel = '1' else
+--    output <= in0 when sel = '0' else
+--              in1 when sel = '1' else
 --              'X';
 
     -- Important thing to remember: make sure to include an else at the end, or
     -- alternatively you must specify an assignment for each possible input
     -- value.
     
-end WHEN_ELSE;
+end when_else;
 
 
 
@@ -196,23 +196,45 @@ end WHEN_ELSE;
 -- and suggest avoiding it for this reason. I have not had problems in any
 -- other simulators.
 
-architecture WITH_SELECT of mux_2x1 is
+architecture with_select of mux_2x1 is
 begin
     -- The with-select is the concurrent equavilent to the case statement.
     -- Like the case statement, only one of the conditions can be true.
     with sel select
-        output <= in1 when '0',
-        in2           when others;
+        output <= in0 when '0',
+        in1           when others;
 
     -- For simulation, you could do something similar as the earlier examples
     -- and have a separate when others. Again, I don't recommend this unless you
     -- have a good reason, but synthesis will create the same circuit.
 --  with sel select
---    output <= in1 when '0',
---    in2           when '1',
+--    output <= in0 when '0',
+--    in1           when '1',
 --    'X'           when others;
 
     -- Important thing to remember: make sure to include "others", or
     -- alternatively you must specify a when clause for each possible value.
 
-end WITH_SELECT;
+end with_select;
+
+
+-- This architecture would never be needed in normal situations. I use it
+-- here to provide a convenient way of synthesizing or simulating different
+-- architectures. Simply change the name of the architecture in parentheses
+-- after work.mux_2x1 to evaluate each architecture.
+
+architecture default_arch of mux_2x1 is
+begin
+
+    -- INSTRUCTIONS: Uncommend the line with the architecture you want to
+    -- synthesize or simulate.
+    UUT : entity work.mux_2x1(if_statement)
+    --UUT : entity work.mux_2x1(case_statement)
+    --UUT : entity work.mux_2x1(when_else)
+    --UUT : entity work.mux_2x1(with_select)
+        port map (in0 => in0,
+                  in1 => in1,
+                  sel => sel,
+                  output => output);
+    
+end default_arch;

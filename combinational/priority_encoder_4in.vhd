@@ -23,7 +23,7 @@ entity priority_encoder_4in is
         -- std_logic_vector. When working with other arrays (covered later),
         -- I often use 0 to n-1 because I'm used to thinking of the first
         -- element of an array at index 0.
-        
+
         inputs : in  std_logic_vector(3 downto 0);
         valid  : out std_logic;
         result : out std_logic_vector(1 downto 0)
@@ -34,7 +34,7 @@ end priority_encoder_4in;
 -- We first use a behavioral architecture with an if statement to define the
 -- behavior of the priority encoder.
 
-architecture IF_STATEMENT of priority_encoder_4in is
+architecture if_statement of priority_encoder_4in is
 begin
     process(inputs)
     begin
@@ -58,7 +58,7 @@ begin
         end if;
     end process;
     
-end IF_STATEMENT;
+end if_statement;
 
 
 -- This architecture is similar, but takes advantage of sequential statements
@@ -67,7 +67,7 @@ end IF_STATEMENT;
 -- to reduce code size, and more importantly, eliminate the potential for
 -- latches, which will be explained in a later example.
 
-architecture IF_STATEMENT2 of priority_encoder_4in is
+architecture if_statement2 of priority_encoder_4in is
 begin
     process(inputs)
     begin
@@ -87,7 +87,7 @@ begin
         end if;
     end process;
     
-end IF_STATEMENT2;
+end if_statement2;
 
 
 -- This architecture uses a case statement instead of an if.
@@ -100,12 +100,11 @@ end IF_STATEMENT2;
 -- depending on the specific conditions. In the situation when only one
 -- condition can be true across and if-elsif chain, the if statement will
 -- synthesize to a mux, which is what we saw in the mux example. For a mux,
--- when checked the select value with if-elsif statements. A select can only
--- be one possible value, so that example synthesized into the desired mux.
+-- when checked the select value with if-elsif statements. A select can only be one possible value, so that example synthesized into the desired mux.
 -- For the priority encoder, any of the input bits can be asserted at any time,
 -- so synthesis creates the desired priority encoder.
 
-architecture CASE_STATEMENT of priority_encoder_4in is
+architecture case_statement of priority_encoder_4in is
 begin
     process(inputs)
     begin
@@ -124,13 +123,13 @@ begin
         end case;
     end process;
     
-end CASE_STATEMENT;
+end case_statement;
 
 
 -- Here is a shorter way of using the case statement by specifying multiple
 -- when values on the same line.
 
-architecture CASE_STATEMENT2 of priority_encoder_4in is
+architecture case_statement2 of priority_encoder_4in is
 begin
     process(inputs)
     begin
@@ -144,7 +143,7 @@ begin
             when others                            => result <= "11";
         end case;
     end process;
-end CASE_STATEMENT2;
+end case_statement2;
 
 
 -- One commonly attempted approach with case statements is to use the std_logic
@@ -153,7 +152,7 @@ end CASE_STATEMENT2;
 -- exlicit value. Instead of meaning '0' or '1', an input will only match a '-'
 -- if the input is also explicitly '-'. 
 
-architecture CASE_STATEMENT_BAD of priority_encoder_4in is
+architecture case_statement_bad of priority_encoder_4in is
 begin
     process(inputs)
     begin
@@ -167,26 +166,47 @@ begin
             when others => result <= "00"; valid <= '0';
         end case;
     end process;
-end CASE_STATEMENT_BAD;
+end case_statement_bad;
 
 
 -- VHDL 2008 introduced the case? construct, which revises how '-' works so that
 -- you can use it to represent '0' or '1'. However, VHDL 2008 is not widely
 -- supported, so I would not recommend this construct if you want your code
 -- to work with every tool.
+--
+-- The architecture commented out because 2008 generally has to be manually
+-- enabled in synthesis and simulation tools. Uncomment this to test it.
 
-architecture CASE_STATEMENT_2008 of priority_encoder_4in is
+--architecture case_statement_2008 of priority_encoder_4in is
+--begin
+--    process(inputs)
+--    begin
+--        valid <= '1';
+
+--        case? (inputs) is
+--            when "1---" => result <= "11";
+--            when "01--" => result <= "10";
+--            when "001-" => result <= "01";
+--            when "0001" => result <= "00";
+--            when others => result <= "00"; valid <= '0';
+--        end case?;
+--    end process;
+--end case_statement_2008;
+
+
+architecture default_arch of priority_encoder_4in is
 begin
-    process(inputs)
-    begin
-        valid <= '1';
 
-        case? (inputs) is
-            when "1---" => result <= "11";
-            when "01--" => result <= "10";
-            when "001-" => result <= "01";
-            when "0001" => result <= "00";
-            when others => result <= "00"; valid <= '0';
-        end case?;
-    end process;
-end CASE_STATEMENT_2008;
+    -- INSTRUCTIONS: Uncomment the architecture that you want to
+    -- synthesize or simulate.
+    UUT : entity work.priority_encoder_4in(if_statement)
+        --UUT : entity work.priority_encoder_4in(if_statement2)
+        --UUT : entity work.priority_encoder_4in(case_statement)
+        --UUT : entity work.priority_encoder_4in(case_statement2)
+        --UUT : entity work.priority_encoder_4in(case_statement_bad)
+        --UUT : entity work.priority_encoder_4in(case_statement_2008)
+        port map (inputs => inputs,
+                  valid  => valid,
+                  result => result);
+
+end default_arch;
