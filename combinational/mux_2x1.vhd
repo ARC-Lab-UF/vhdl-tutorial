@@ -110,8 +110,7 @@ begin
         -- = operator which returns a boolean. Note that VHDL does *not* use
         -- a double equal (==) for a comparison.
         --
-        -- In Verilog, this conversion is done automatically.
-
+        -- In VHDL 2008 and Verilog, this conversion is done automatically.
         if (sel = '0') then
             -- Signal assignments are done with the <= operator. 
             output <= in0;
