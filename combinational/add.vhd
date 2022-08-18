@@ -200,9 +200,9 @@ begin
 end good5;
 
 
--- VHDL 2008 allows aggragates on the LHS of assignments, so we can do the
+-- VHDL 2008 allows aggregates on the LHS of assignments, so we can do the
 -- entire behavior with one line. Technically, VHDL 1993 also allows LHS
--- aggregates, but you can't include a vector in the aggragate, so we can't
+-- aggregates, but you can't include a vector in the aggregate, so we can't
 -- do this without 2008.
 --
 -- This is commented out because of the lack of tool support. In my tests, it
