@@ -12,10 +12,10 @@ end add_tb;
 architecture exhaustive of add_tb is
 
     constant WIDTH : integer := 8;
-
-    signal in0       : std_logic_vector(7 downto 0);
-    signal in1       : std_logic_vector(7 downto 0);
-    signal sum       : std_logic_vector(7 downto 0);
+    
+    signal in0       : std_logic_vector(WIDTH-1 downto 0);
+    signal in1       : std_logic_vector(WIDTH-1 downto 0);
+    signal sum       : std_logic_vector(WIDTH-1 downto 0);
     signal carry_out : std_logic;
 
     procedure reference_model
