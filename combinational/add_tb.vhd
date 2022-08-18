@@ -35,6 +35,7 @@ architecture exhaustive of add_tb is
 begin  -- TB
 
     UUT : entity work.add
+        generic map (WIDTH => WIDTH)
         port map (
             in0       => in0,
             in1       => in1,
