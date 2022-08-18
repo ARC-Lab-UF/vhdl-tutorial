@@ -1,6 +1,14 @@
 -- Greg Stitt
 -- University of Florida
 
+-- Entity: priority_encoder
+-- Description: A parameterized priority encoder that supports any number of
+-- inputs. The module assumes that the MSB of the input is highest priority.
+
+-- NOTE: These examples might not synthesize efficiently in all tools.
+-- See https://opencores.org/projects/priority_encoder for alternative.
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -12,20 +20,32 @@ use ieee.math_real.all;
 
 entity priority_encoder is
     generic (
-        -- Generics are compile-time-specified parameters that allow you to
-        -- create flexible entities for different use cases. In this example,
-        -- we create a generic (i.e. parameter) for the number of inputs. The
-        -- assigned value is optional and provides a default value in the case
-        -- that a particular instance does not specify a value (see structural
-        -- architecture section).
+        -- Generics are parameters whose values are specified when an instance
+        -- of the entity is created. The parameters allow you to create
+        -- flexible entities for different use cases. In this example,
+        -- we create a generic for the number of inputs. The assigned value is
+        -- optional and provides a default value in the case that a particular
+        -- instance does not specify a value (see structural architecture
+        -- section).
+        --
+        -- COMMON MISCONCEPTION: The default value of 4 does not mean this
+        -- priority encoder has 4 inputs. It means that if NUM_INPUTS is
+        -- not specified when the entity is instantiated (using a generic map)
+        -- it will default to 4.
+        --
+        --I generally suggest avoiding default values
+        -- unless there is a natural default. The only time a default value is
+        -- absolutely required is if you are using the entity as the top-level
+        -- entity for synthesis. Alternatively, you could just create a
+        -- separate top leve that does not have generics.
         --
         -- The positive type is a subset of the integer type that only allows
         -- positive integers. Since a priority encoder has to have at least 1
         -- input, it makes sense to make this positive instead of integer.
         --
-        -- VERILOG LIMITATION: Verilog/SV does not have built in ways of doing
+        -- VERILOG LIMITATION: Verilog/SV does not have formal ways of doing
         -- parameter validation. You can find informal workarounds, but VHDL
-        -- has much more formal support for validation parameter values at
+        -- has much more formal support for validating parameter values at
         -- compile time.
 
         NUM_INPUTS : positive := 4
