@@ -8,25 +8,25 @@ As with all circuits, first design the combinational circuit, then write the cod
 
 # Suggested Study Order
 
-1. [2:1 mux]()
-    - Introduces basic constructs and guidelines for cobminational logic. 
-    - Includes a top-level module mux2x1 that allows you to change the module that is synthesized.
-    - Includes a testbench that tests all included modules at the same time.
-1. [4-input Priority Encoder]()
-    - Introduces packed arrays.
+1. [2:1 mux](./mux_2x1.vhd)
+    - Introduces basic constructs and guidelines for combinational logic. 
+    - Includes a testbench that tests all included architectures at the same time.
+1. [4-input Priority Encoder](./priority_encoder_4in.vhd)
+    - Introduces std_logic_vectors.
     - Discusses appropriate situations for if and case statements.
-1. [Parameterized Priority Encoder]()
-    - Introduces parameters to support any number of inputs.
-    - Introduces for loops inside always blocks.
-    - Introduces local parameters.
-    - Introduces how to convert an integer to any number of bits to avoid width mismatch problems.
-1. [Adders]()
-    - Introduces arithmetic operations, blocking vs. non-blocking assignments, concatenation, automatic variable resizing.
-    - Illustrates a variety of adders (no carry, carry out, carry in & out, carry in, out, and overflow)
-1. [Multipliers]()
+    - Introduces the case? VHDL 2008 construct
+1. [Generic Priority Encoder](./priority_encoder.vhd)
+    - Introduces generics to support any number of inputs.
+    - Introduces for loops inside processes.
+    - Introduces constants.
+    - Introduces how to convert an integer to any number of bits to avoid width-mismatch problems.
+1. [Adders](./add.vhd)
+    - Introduces arithmetic operations, sign extension, concatenation, type casting.
+    - Demonstrates the differences between three different package combinations for arithmetic operations. 
+1. [Multipliers (TBD)]()
     - Introduces signed and unsigned, generate statements, variable scope, slicing, and hiearchical access of generate blocks.
     -Testbench tests signed and unsigned instances simultaneously.    
-1. [ALU]()
+1. [ALU (TBD)]()
     - Introduces common problems with latches, strategies for avoiding latches, local parameters, and tasks.    
     - Introduces packages, importing, and scope resolution to avoid namespace conflicts.    
 
