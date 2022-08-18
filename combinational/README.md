@@ -25,7 +25,7 @@ As with all circuits, first design the combinational circuit, then write the cod
     - Demonstrates the differences between three different package combinations for arithmetic operations. 
 1. [Multipliers](./mult.vhd)
     - Introduces multiplication, if-generate statements, and slicing.
-    -Testbench tests signed and unsigned instances simultaneously.    
+    - Testbench tests signed and unsigned instances simultaneously.
 1. [ALU (TBD)]()
     - Introduces common problems with latches, strategies for avoiding latches, local parameters, and tasks.    
     - Introduces packages, importing, and scope resolution to avoid namespace conflicts.    
