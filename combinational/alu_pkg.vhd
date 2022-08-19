@@ -1,3 +1,9 @@
+-- Greg Stitt
+-- University of Florida
+--
+-- This package defines constants and attributes that assist the ALU entities
+-- in alu.vhd.
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -26,7 +32,9 @@ package alu_pkg is
     -- SUGGESTION: If you are going to use an enumerated type, either:
     -- 1) Don't specify the encoding, or
     -- 2) Specify the encoding, but don't have any logic that requires that
-    --    encoding for correct functionality.
+    --    encoding for correct functionality. e.g. don't compare with a
+    --    specific encoding, and don't assign a specific encoding to a signal.
+    --    Only use the enumerated type.
     attribute enum_encoding : string;
     attribute enum_encoding of alu_sel_t : type is "00 01 10 11";
 

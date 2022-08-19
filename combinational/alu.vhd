@@ -1,12 +1,32 @@
 -- Greg Stitt
 -- University of Florida
 
--- https://electronics.stackexchange.com/questions/206949/vhdl-how-does-one-assign-custom-values-to-identifiers-of-an-enumerated-type
+-- In this example, we look at various constructs that can be used to create
+-- an ALU. One of the most important takeaway points is to avoid latches by
+-- ensuring that all outputs are defined on all paths through a process.
+--
+-- Like the other examples, there are different architectures and entities,
+-- along with the top-level alu entity at the bottom of the file, which can be
+-- change to synthesize or simulate each implementation.
+--
+-- NOTE: Simulation of some of these implemenations may result in warnings
+-- similar to the following:
+--
+-- Warning: NUMERIC_STD.">": metavalue detected, returning FALSE
+-- #    Time: 0 ns  Iteration: 0  Instance: /alu_tb/UUT/U_ALU
+--
+-- A metavalue is anything other than '1' or '0' (e.g., 'X', '-', 'U').
+-- As long as this happens at time 0, it can be ignored. It usually happens
+-- because a 'U' reaches the input of an operator (in this case >). It can
+-- also happen at other times, in which case you should verify that it is
+-- intended. Explicit use of don't cares can cause this warning, as is discussed
+-- in the example below.
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- Entity: alu1
 -- ALU with generic width that does addition (sel = "00"),
 -- subtraction (sel="01"), and (sel="10"), or (sel="11"). There are also
 -- status flags to signify positive, negative, and zero results.
@@ -65,7 +85,7 @@ begin
     begin
         case sel is
             when "00" =>
-                -- Must cast in0 and in1 to either signed or unsigned because
+                -- Must cast in0 and in1 to either signed because
                 -- addition is not defined for std_logic_vector when using
                 -- ieee.numeric_std  
                 temp := signed(in0) + signed(in1);
@@ -86,7 +106,7 @@ begin
                 end if;
 
             when "01" =>
-                -- Same thing except using substraction.
+                -- Same thing except using subtraction.
                 temp := signed(in0) - signed(in1);
 
                 if (temp > 0) then
@@ -104,11 +124,11 @@ begin
                 end if;
 
             when "10" =>
-                -- Doesn't define flags (causes latch)
+                -- Doesn't define flags (causes latches on each flag)
                 temp := signed(in0 and in1);
 
             when "11" =>
-                -- Doesn't define flags (causes latch)
+                -- Doesn't define flags (causes latch on each flag)
                 temp := signed(in0 or in1);
 
             when others => null;
@@ -176,19 +196,21 @@ begin  -- arch2
         -- Another option that I recommend in most cases is to assign default
         -- values to each output at the beginning of the process. Then, if
         -- you need to update the value later, you still can because these
-        -- are sequential statements. We technically aren't assigning a default
+        -- are sequential statements. We aren't assigning a default
         -- value to the output signal, but we certainly can. In fact, if the
         -- ALU didn't support all possible select combinations, we could do that
         -- to avoid a latch on the output.
         --
         -- This strategy requires less code, tends to be less error prone, and
-        -- guarantees you won't have latches. Use it whenever you can.
+        -- guarantees you won't have latches on the signals with default values.
+        -- Use it whenever you can.
         --
         -- Note that this approach doesn't work with concurrent assignements.
         -- Multiple concurrent assignments to the same signal creates multiple
         -- drivers, which will result in synthesis errors. I haven't looked
         -- into the exact simulation semantics of multiple drivers, but in
         -- Modelsim, you will get undefined values from multiple drivers.
+        
         pos  <= '0';
         neg  <= '0';
         zero <= '0';
@@ -209,6 +231,7 @@ begin  -- arch2
             when others => null;
         end case;
 
+        -- This code is simpler now that we have default values of '0'.
         if (temp > 0) then
             pos <= '1';
         elsif (temp = 0) then
@@ -268,12 +291,12 @@ begin  -- arch3
 
         case sel is
             when C_ADD =>
-                temp   := signed(in0)+signed(in1);
+                temp   := signed(in0) + signed(in1);
                 output <= std_logic_vector(temp);
                 update_flags(temp);
                 
             when C_SUB =>
-                temp   := signed(in0)-signed(in1);
+                temp   := signed(in0) - signed(in1);
                 output <= std_logic_vector(temp);
                 update_flags(temp);
                 
@@ -316,8 +339,9 @@ architecture arch4 of alu1 is
 begin  -- arch4
 
     -- We have to manually convert between std_logic_vector and alu_sel_t.
-    -- You would probably never actually write code this way, but if you need
+    -- You would probably never write ALU code this way, but if you need
     -- to do this conversion, this is how to do it.
+    
     alu_sel <= ADD_SEL when sel = C_ADD else
                SUB_SEL when sel = C_SUB else
                AND_SEL when sel = C_AND else
@@ -375,8 +399,10 @@ begin  -- arch4
 end arch4;
 
 
+--------------------------------------------------------------------------
+
 -- The following alu2 entity illustrates a more elegant approach to achieving
--- select values that are named in simualtion. It also demonstrates how to use
+-- select values that are named in simulation. It also demonstrates how to use
 -- a package.
 
 library ieee;
@@ -449,25 +475,8 @@ begin
     end process;
 end arch1;
 
-
-
--- You might have wondered why we need the temp variable for this example.
--- In previous examples, we needed it to deal with carry signals or
--- multiplication. Here, we are ignoring the carry, so it doesn't serve that
--- purpose. We could have potentially just assigned the output signal, and then
--- read from that signal. However, VHDL 1993 does not support reading values
--- from outputs, which can be very annoying. You will see other suggestions
--- online, such as using inout or buffer instead of out, but I don't recommend
--- this unless you are very experienced with how synthesis treats these
--- constructs. When using VHDL 1993, any time you have an output that you also
--- need to read from, you need to create an internal signal/variable. I will
--- often do this by creating a signal with the same name, but an _s suffix.
---
--- Fortunately, VHDL 2008 eliminated this limitation, so you can read directly
--- from the output. However, output is a signal, so its value isn't updated
--- until the end of the process. So, we could potentially do something like
--- the following architecture, which updates the flags concurrently.
-
+------------------------------------------------------------------------
+-- Top level ALU entity used for synthesis and simulation.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -492,11 +501,14 @@ architecture default_arch of alu is
     signal alu_sel : alu_sel_t;
 begin
 
+    -- INSTRUCTIONS: uncomment the architecture and/or entity that you want
+    -- to evaluate.
+    
     --U_ALU : entity work.alu1(bad)
-        --U_ALU : entity work.alu1(arch1)
+        U_ALU : entity work.alu1(arch1)
         --U_ALU : entity work.alu1(arch2)
         --U_ALU : entity work.alu1(arch3)
-        U_ALU : entity work.alu1(arch4)
+        --U_ALU : entity work.alu1(arch4)
         generic map (WIDTH => WIDTH)
         port map (in0    => in0,
                   in1    => in1,
@@ -506,7 +518,10 @@ begin
                   zero   => zero,
                   output => output);
 
-
+     ---------------------------------------------------------
+     -- Uncomment everything below if using the alu2 entity. Make sure to
+     -- comment out everything above also.
+        
     --alu_sel <= ADD_SEL when sel = ADD_SEL'encoding else
     --           SUB_SEL when sel = SUB_SEL'encoding else
     --           AND_SEL when sel = AND_SEL'encoding else

@@ -8,7 +8,6 @@ use ieee.numeric_std.all;
 entity alu_tb is
 end alu_tb;
 
-
 architecture exhaustive of alu_tb is
 
     constant WIDTH : integer := 8;
