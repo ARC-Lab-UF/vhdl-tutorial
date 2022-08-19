@@ -6,6 +6,12 @@ This directory provides a tutorial on how to create synthesizable behavior descr
 
 As with all circuits, first design the combinational circuit, then write the code. With combinational logic, this methodology is often confusing because synthesis tools are generally very good at optimizing combinational logic. So, unlike other types of logic, you can write often combinational logic in many ways that will all synthesize to efficient circuits. However, you should at the very least consider the I/O interface before starting to write the code. You could also try to simplify the logic manually, but for pure combinational logic, synthesis tools will likely do a better job.
 
+# Coding Guidelines for Combinational Logic
+
+The exmples below give many suggestions, but there are two guidelines that should never be violated for combinational logic:
+ 1. All inputs must be in the sensitivty list for a process, or there likely will be difference between simulation and synthesis.
+ 1. All outputs must be defined on all paths through a process, or latches will be created during synthesis.
+
 # Suggested Study Order
 
 1. [2:1 mux](./mux_2x1.vhd)
@@ -26,7 +32,7 @@ As with all circuits, first design the combinational circuit, then write the cod
 1. [Multipliers](./mult.vhd)
     - Introduces multiplication, if-generate statements, and slicing.
     - Testbench tests signed and unsigned instances simultaneously.
-1. [ALU (TBD)]()
-    - Introduces common problems with latches, strategies for avoiding latches, local parameters, and tasks.    
-    - Introduces packages, importing, and scope resolution to avoid namespace conflicts.    
+1. [ALU](./alu.vhd)
+    - Introduces common problems with latches and strategies for avoiding latches.
+    - Introduces constants, enumerated types, encodings of enumerated types, don't cares, procedures, and packages ([alu_pkg](./alu_pkg.vhd))
 
