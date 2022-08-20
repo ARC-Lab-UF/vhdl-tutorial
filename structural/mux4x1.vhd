@@ -5,7 +5,7 @@
 -- combining three 2x1 muxes to create a 4x1 mux.
 --
 -- For any structural architecture, the most critical first step is to draw
--- out a schematic of the architecture in terms of modules that have already
+-- out a schematic of the architecture in terms of entities that have already
 -- been defined. The structural description is then simply a text representation
 -- of that schematic.
 --
@@ -21,10 +21,8 @@ use ieee.std_logic_1164.all;
 
 entity mux_2x1 is
     port(
-        in0    : in  std_logic;
-        in1    : in  std_logic;
-        sel    : in  std_logic;
-        output : out std_logic);
+        in0, in1, sel : in  std_logic;
+        output        : out std_logic);
 end mux_2x1;
 
 architecture default_arch of mux_2x1 is
@@ -177,9 +175,13 @@ begin
 end STR2;
 
 
+-------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
+
+-- Entity: mux4x1:
+-- Description: Top-level entity for evaluating the different architectures.
 
 entity mux4x1 is
     port(
@@ -191,6 +193,7 @@ end mux4x1;
 
 architecture default_arch of mux4x1 is
 begin
+    -- INSTRUCTIONS: change the comments to evaluate each architecture.
     U_MUX : entity work.mux_4x1(STR1)
         --U_MUX : entity work.mux_4x1(STR2)
         port map (
