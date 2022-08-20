@@ -13,8 +13,8 @@ in the structure that can be described with generate constructs, as the examples
 
 1. [4:1 mux](mux4x1.vhd)
     - Illustrates the basic techniques for converting a schematic (in this case [mux4x1.pdf](mux4x1.pdf)) into VHDL code.    
-1. [Ripple-Carry Adder](ripple_carry_adder.sv)
-    - Introduces parameters and the for-generate construct.    
+1. [Ripple-Carry Adder](ripple_carry_adder.vhd)
+    - Introduces the for-generate construct.    
     - See the schematic [ripple_carry_adder.pdf](ripple_carry_adder.pdf) for reference.
     - ***Important point:*** Use the "for generate" statement anytime that there is a pattern in a structural description. This construct will allow you to specify very large structures with very little code.
 1. [Delay](delay.sv)
