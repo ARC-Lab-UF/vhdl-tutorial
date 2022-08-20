@@ -17,8 +17,8 @@ in the structure that can be described with generate constructs, as the examples
     - Introduces the for-generate construct.    
     - See the schematic [ripple_carry_adder.pdf](ripple_carry_adder.pdf) for reference.
     - ***Important point:*** Use the "for generate" statement anytime that there is a pattern in a structural description. This construct will allow you to specify very large structures with very little code.
-1. [Delay](delay.sv)
-    - Introduces unpacked arrays, if generate, and parameter validation techniques.    
+1. [Delay](delay.vhd)
+    - Introduces arrays and if generate.    
     - See the schematic [delay.pdf](delay.pdf) for reference.
 1. [Add Tree (TBD)]()
     - Introduces recursion.    
