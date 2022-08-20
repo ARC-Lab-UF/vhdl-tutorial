@@ -49,6 +49,16 @@ use ieee.std_logic_1164.all;
 -- positive, which includes the value 0. You would never intentionally
 -- instantiate a delay with 0 cycles, but it can surprisingly occur a lot
 -- when the delay is instantiated within other parameterized code.
+--
+-- VERILOG COMPARISON: Verilog has no formal way of validating parameters.
+-- In Verilog, CYCLES would have to be an integer, which could take negative
+-- values. Clearly that wouldn't compile in this case, but the error messages
+-- might be more confusing that an error specifying that CYCLES is outside is
+-- valid range. In the worst case, the code could still compile but not
+-- function as expected. There are workarounds to address this in Verilog,
+-- but none of them are ideal. VHDL has subtypes that provide an elegant
+-- solution to restricting values to a supported range. Natural and positive
+-- are both subtypes of the base integer type.
 
 entity delay is
     generic(CYCLES : natural := 8;
