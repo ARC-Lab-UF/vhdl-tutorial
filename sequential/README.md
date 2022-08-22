@@ -7,7 +7,7 @@ common mistakes when writing RTL code is accidentally introducing an incorrect n
 
 # Methodology: design the circuit, then write the code.
 
-For circuits with sequential logic, designing the circuit means deciding exactly how many registers you want, and where those registers should be placed. Although synthesis 
+For circuits with sequential logic, designing the circuit means deciding exactly how many registers you want, and what those registers should be connected to. Although synthesis 
 optimizations may change this some (e.g. via retiming), use of registers is a critical design decision because it affects the timing of your design, which is something RTL 
 synthesis cannot change. Similar to structural architectures, "designing the circuit" for sequential logic usually means creating a schematic that illustrates the exact number
 and placement of all registers. With this schematic, you can easily apply the guidelines given below to ensure your design synthesizes as intended.
