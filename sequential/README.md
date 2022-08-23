@@ -27,5 +27,11 @@ and placement of all registers. With this schematic, you can easily apply the gu
     - Illustrates default input values.
     - Illustrates synthesis attributes to prevent inferring of non-flip-flop resources (e.g., embedded RAM).
     - NOTE: This is very useful entity. I use it in almost every application I work on. I've had heavily pipelined applications where delays were the primary resource resource bottleneck.
+1. [Counter](counter.vhd)
+    - Demonstrates various way of creating counters.
+    - Illustrates differences between integer and unsigned/signed types.
+    - Explains how to create functions in packages so they can be used in ports.
+    - Demonstrates usage of signal attributes to replace constants and ranges.
+    - Testbench demonstrates how to simulate for a specific amount of time, and how to verify that various events were tested.
     
 
