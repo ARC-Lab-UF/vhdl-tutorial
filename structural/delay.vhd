@@ -102,6 +102,18 @@ begin
         -- If we had declared them for the entire architecture, it would still
         -- work, but we would get synthesis warnings about unused signals
         -- in the case where CYCLES == 0.
+        --
+        -- SYSTEM VERILOG COMPARISON: SystemVerilog is much more convenient
+        -- when creating arrays. Basically, every signal can become an
+        -- "unpacked" array by simply adding brackets, like in most languages/
+        --
+        -- e.g. logic [WIDTH-1:0] d[CYCLES+1];
+        --
+        -- When working with entities/modules that use arrays on ports, this is
+        -- massive advantage of SystemVerilog because in VHDL you have to define
+        -- a type in a package, and in VHDL pre-2008 you can't make the array
+        -- element unconstrained, which imposes huge restrictions. There are
+        -- workarounds for VHDL, but they are cumbersome.       
         
         type reg_array_t is array (0 to CYCLES) of std_logic_vector(WIDTH-1 downto 0);
 
