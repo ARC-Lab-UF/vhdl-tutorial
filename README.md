@@ -24,7 +24,7 @@ One other issue to realize is that most VHDL code is written for the 1993 standa
 
 1. [Combinational Logic](./combinational)
 1. [Structural Architectures](./structural)
-1. [Sequential Logic]()
+1. [Sequential Logic](./sequential)
 1. [Finite-State Machines]()
 1. [Finite-State Machines + Datapaths]()
 1. [Problematic Coding Practices (Gotchas)]()
