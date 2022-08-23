@@ -31,8 +31,8 @@ use ieee.std_logic_1164.all;
 -------------------------------------------------------------------------------
 
 entity delay is
-    generic(CYCLES : natural := 8;
-            WIDTH  : positive := 16;
+    generic(CYCLES : natural;
+            WIDTH  : positive;
 
             -- Here, we again use an unconstrained vector as a workaround
             -- to VHDL 1993 not allowing the use of generics to define other
