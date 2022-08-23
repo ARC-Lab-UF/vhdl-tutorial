@@ -22,6 +22,10 @@ and placement of all registers. With this schematic, you can easily apply the gu
     - Illustrates common mistakes with sequential logic.
     - Goes over the use of signals and variables to accomplish different goals.
     - Suggestion: synthesize each module and use an RTL viewer to ensure the schematic matches the architecture in the pdf. There are no provided testbenches for these examples since they are solely intended to match the structure of the circuits in architectures.pdf. 
-1. [Delay (TBD)]()
+1. [Delay](delay.vhd)
+    - Illustrates behavioral alternative to earlier structural delay that still synthesizes the same circuit.
+    - Illustrates default input values.
+    - Illustrates synthesis attributes to prevent inferring of non-flip-flop resources (e.g., embedded RAM).
+    - NOTE: This is very useful entity. I use it in almost every application I work on. I've had heavily pipelined applications where delays were the primary resource resource bottleneck.
     
 
