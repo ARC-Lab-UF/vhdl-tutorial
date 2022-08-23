@@ -16,7 +16,7 @@ and placement of all registers. With this schematic, you can easily apply the gu
 
 1. [Register](reg.vhdl)
     - Illustrates how to create an asynchronous reset, a synchronous reset, an enable/load, and a highly parameterized register with different reset types and activiation levels.
-1. [Examples of Synthesizing Behavioral Code to a Specific Structure (TBD)](seq_example.vhd)
+1. [Examples of Synthesizing Behavioral Code to a Specific Structure](seq_example.vhd)
     - See [architectures.pdf](architectures.pdf) for different example circuits. Each one has a corresponding module in [seq_example.vhd](seq_example.vhd).
     - Illustrates the important rule that if you assign a signal on a rising clock edge, it becomes a register.
     - Illustrates common mistakes with sequential logic.
