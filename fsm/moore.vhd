@@ -38,6 +38,12 @@ entity moore_example is
         );
 end moore_example;
 
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 1-process model examples
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
 architecture one_process_1 of moore_example is
     -- There are numerous ways to do state machines, but I recommend declaring
     -- your own type that defines each possible state. This makes the code more
@@ -141,8 +147,8 @@ begin
     process(clk, rst)
     begin
         if (rst = '1') then
-            output_r  <= "0001";
-            state_r <= STATE0;
+            output_r <= "0001";
+            state_r  <= STATE0;
             
         elsif(clk'event and clk = '1') then
 
@@ -193,9 +199,9 @@ end one_process_2;
 architecture one_process_3 of moore_example is
 
     type state_t is (STATE0, STATE1, STATE2, STATE3);
-    signal state_r : state_t;
+    signal state_r  : state_t;
     signal output_r : std_logic_vector(output'range);
-    
+
     -- If we want to use a custom encoding for each state_t value, we can
     -- do the following (which uses a binary encoding).
 
@@ -226,8 +232,8 @@ begin
     process(clk, rst)
     begin
         if (rst = '1') then
-            output_r  <= "0001";
-            state_r <= STATE0;
+            output_r <= "0001";
+            state_r  <= STATE0;
             
         elsif(clk'event and clk = '1') then
 
@@ -523,3 +529,38 @@ begin
         end case;
     end process;
 end two_process_3;
+
+
+-------------------------------------------------------------------------------
+-- Top-level entity for evaluating all the architectures.
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity moore is
+    port (
+        clk, rst, en : in  std_logic;
+        output       : out std_logic_vector(3 downto 0)
+        );
+end moore;
+
+architecture default_arch of moore is
+begin
+    -- INSTRUCTIONS: Uncomment the version you would like to test.
+    -- Note that the 1-process version cause the testbench to fail because
+    -- of the 1-cycle delay on the output.
+    
+    --U_MOORE : entity work.moore_example(one_process_1)
+    --U_MOORE : entity work.moore_example(one_process_2)
+    --U_MOORE : entity work.moore_example(one_process_3)
+    U_MOORE : entity work.moore_example(two_process_1)
+    --U_MOORE : entity work.moore_example(two_process_2)
+    --U_MOORE : entity work.moore_example(two_process_3)
+
+        port map (
+            clk => clk,
+            rst => rst,
+            en => en,
+            output => output
+            );
+end default_arch;
