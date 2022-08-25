@@ -774,6 +774,270 @@ begin
 end fsmd_2p_4;
 
 
+-- Architecture: fsmd_3p
+-- Description:  A modification of the previous module to use 3-processes.
+--
+-- NOTE: Personally, I have never encountered an example where I would use this
+-- strategy.
+
+architecture fsmd_3p of bit_diff_example is
+
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+
+    signal data_r   : std_logic_vector(data'range);
+    signal result_r : std_logic_vector(result'range);
+    signal count_r  : unsigned(integer(ceil(log2(real(WIDTH))))-1 downto 0);
+    signal diff_r   : signed(result'range);
+    
+begin
+    result <= result_r;
+
+    -- In the 3-process model, one process is always just for
+    -- the state register.
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            state_r <= START;
+        elsif (rising_edge(clk)) then
+            state_r <= next_state;
+        end if;
+    end process;
+
+    -- The second process is another clocked process that handles all the other
+    -- registered logic. In other words, we have simply taken the one clocked
+    -- process from the previous architecture and separated it into two: one
+    -- for the state register, and one for everything else. I honestly don't
+    -- know why someone would use this model, but I've seen it multiple times. 
+    process(clk, rst)
+        variable next_diff_v : signed(diff_r'range);
+    begin
+        if (rst = '1') then
+            result_r <= (others => '0');
+            diff_r   <= (others => '0');
+            count_r  <= (others => '0');
+            data_r   <= (others => '0');
+            
+        elsif (rising_edge(clk)) then
+            case (state_r) is
+                when START =>
+                    result_r <= (others => '0');
+                    diff_r   <= (others => '0');
+                    count_r  <= (others => '0');
+                    data_r   <= data;
+
+                when COMPUTE =>
+                    if (data_r(0) = '1') then
+                        next_diff_v := diff_r + 1;
+                    else
+                        next_diff_v := diff_r - 1;
+                    end if;
+
+                    diff_r  <= next_diff_v;
+                    data_r  <= std_logic_vector(shift_right(unsigned(data_r), 1));
+                    count_r <= count_r + 1;
+
+                    if (count_r = WIDTH-1) then
+                        result_r <= std_logic_vector(next_diff_v);
+                    end if;
+
+                    
+                when RESTART =>
+                    count_r <= (others => '0');
+                    data_r  <= data;
+                    diff_r  <= (others => '0');
+                    
+                when others => null;
+            end case;
+        end if;
+    end process;
+
+    -- The 3rd process handles all combinational logic, which is identical to
+    -- the previous example.
+    process(state_r, go, count_r)
+    begin
+        next_state <= state_r;
+
+        case (state_r) is
+            when START =>
+                done <= '0';
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+                
+            when COMPUTE =>
+                done <= '0';
+                if (count_r = WIDTH-1) then
+                    next_state <= RESTART;
+                end if;
+                
+            when RESTART =>
+                done <= '1';
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when others => null;
+        end case;
+    end process;
+    
+end fsmd_3p;
+
+
+-- Architecture: fsmd_4p
+-- Description:  This architecture adds another process to further separate
+-- functionality by process.
+--
+-- Like the 3-process version, despite seeing this style in other code, I
+-- have never encountered a situation where I would use it.
+
+architecture fsmd_4p of bit_diff_example is
+
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+
+    signal data_r, next_data     : std_logic_vector(data'range);
+    signal result_r, next_result : std_logic_vector(result'range);
+    signal count_r, next_count   : unsigned(integer(ceil(log2(real(WIDTH))))-1 downto 0);
+    signal diff_r, next_diff     : signed(result'range);
+    
+begin
+    result <= result_r;
+
+    -- Like the 3-process model, in the 4-process model, one process is always 
+    -- just for the state register.    
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            state_r <= START;
+        elsif (rising_edge(clk)) then
+            state_r <= next_state;
+        end if;
+    end process;
+
+    -- The second process is combinational logic solely for the next state
+    -- transitions.
+    process(state_r, go, count_r)
+    begin
+        next_state <= state_r;
+
+        case (state_r) is
+            when START =>
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+                
+            when COMPUTE =>
+                if (count_r = WIDTH-1) then
+                    next_state <= RESTART;
+                end if;
+                
+            when RESTART =>
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when others => null;
+        end case;
+    end process;
+
+    -- The 3rd process solely allocates the other registers.
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            result_r <= (others => '0');
+            diff_r   <= (others => '0');
+            count_r  <= (others => '0');
+            data_r   <= (others => '0');
+        elsif (rising_edge(clk)) then
+            result_r <= next_result;
+            diff_r   <= next_diff;
+            count_r  <= next_count;
+            data_r   <= next_data;
+        end if;
+    end process;
+
+    -- The 4th process handles all remaining combinational logic, which
+    -- includes no-registered output logic, and non-state-register inputs.
+    -- the previous example.
+    process(state_r, go, count_r)
+        variable next_diff_v : signed(diff_r'range);
+    begin
+        next_result <= result_r;
+        next_diff   <= diff_r;
+        next_data   <= data_r;
+        next_count  <= count_r;
+
+        done <= '0';
+
+        case (state_r) is
+            when START =>
+                done        <= '0';
+                next_result <= (others => '0');
+                next_diff   <= (others => '0');
+                next_data   <= data;
+                next_count  <= (others => '0');
+                
+            when COMPUTE =>
+                if (data_r(0) = '1') then
+                    next_diff_v := diff_r + 1;
+                else
+                    next_diff_v := diff_r - 1;
+                end if;
+
+                next_diff  <= next_diff_v;
+                next_data  <= std_logic_vector(shift_right(unsigned(data_r), 1));
+                next_count <= count_r + 1;
+
+                if (count_r = WIDTH-1) then
+                    next_result <= std_logic_vector(next_diff_v);
+                end if;
+                
+            when RESTART =>
+                done       <= '1';
+                next_diff  <= (others => '0');
+                next_count <= (others => '0');
+                next_data  <= data;
+                
+            when others => null;
+        end case;
+    end process;
+    
+end fsmd_4p;
+
+
+-- FINAL THOUGHTS ON FSMD MODELS:
+-- According to my tests on a MAX 10 FPGA, the model you use has no impact on
+-- the resource requirements. Modules bit_diff_fsmd_2p_2 through 
+-- bit_diff_fsmd_4p are all conceptually identical, just using different numbers
+-- of processes. All 5 of these modules synthesize to the exact same resources.
+-- I have not tested timing differences yet, but I suspect those would be
+-- identical also.
+--
+-- This is actually great news because ultimately what matters is designing the
+-- circuit you want. You can then use whatever model you want from the previous
+-- examples based on what is most convenient for that circuit. Assuming the
+-- number of registers matches the designed circuit, all these models should
+-- synthesize identically.
+--
+-- There are other models that do things slightly differenly. e.g.:
+--
+-- http://www.sunburst-design.com/papers/CummingsSNUG2019SV_FSM1.pdf
+--
+-- I haven't yet evaluated all their models, but I would bet that the 
+-- differences in resources that they report are from different numbers of
+-- registers in the different models, or from modifications in the logic.
+-- For example, their 3-process model uses next state to decide registered
+-- output assignments. This has the advantage of enabling registered outputs
+-- without a 1-cycle delay, but the same thing can be achieved in my models
+-- by simply moving the registered output assignment onto a state transition
+-- from the previous state.
+--
+-- Ultimately, I still highly suggest my methodology: design the circuit first,
+-- then write the code that synthesizes into that circuit. Don't pick a model
+-- and then hope that it synthesizes the circuit you want.
+
+
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -799,7 +1063,9 @@ begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_2)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_3)
-    U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_4)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_4)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_3p)
+    U_BIT_DIFF : entity work.bit_diff_example(fsmd_4p)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
