@@ -431,6 +431,128 @@ begin
 end fsmd_2p;
 
 
+-- Architecture: fsmd_2p_2
+-- Description: Implements a different version of the original FSMD.
+-- To show an alternative for the done signal, in this example we make it
+-- combinational logic that is a function of the current state. In the previous
+-- examples, the done output was registered. The advantage of combinational
+-- logic is that it can respond to changes in inputs within the same cycle.
+-- Although this is not really an advantage for the done signal, it is useful
+-- for many control signals.
+--
+-- In general, the 2-process model is useful because the designer gets to
+-- decide what is registered.
+
+architecture fsmd_2p_2 of bit_diff_example is
+
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+
+    signal data_r, next_data     : std_logic_vector(data'range);
+    signal result_r, next_result : std_logic_vector(result'range);
+    signal count_r, next_count   : unsigned(integer(ceil(log2(real(WIDTH))))-1 downto 0);
+    signal diff_r, next_diff     : signed(result'range);
+    
+begin
+    result <= result_r;
+
+    -- Done is no longer registered, so we don't need it here.
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            result_r <= (others => '0');
+            diff_r   <= (others => '0');
+            count_r  <= (others => '0');
+            data_r   <= (others => '0');
+            state_r  <= START;
+            
+        elsif (rising_edge(clk)) then
+            result_r <= next_result;
+            diff_r   <= next_diff;
+            count_r  <= next_count;
+            data_r   <= next_data;
+            state_r  <= next_state;
+        end if;
+    end process;
+
+    process(go, result_r, diff_r, data_r, count_r, state_r)
+        variable next_diff_v : signed(diff_r'range);
+    begin
+        next_result <= result_r;
+        next_diff   <= diff_r;
+        next_data   <= data_r;
+        next_count  <= count_r;
+        next_state  <= state_r;
+
+        -- Done is combinational in this architecture, so it doesn't have a
+        -- next version.
+        done <= '0';
+
+        case (state_r) is
+            when START =>
+                done        <= '0';
+                next_result <= (others => '0');
+                next_diff   <= (others => '0');
+                next_data   <= data;
+                next_count  <= (others => '0');
+
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when COMPUTE =>
+                if (data_r(0) = '1') then
+                    next_diff_v := diff_r + 1;
+                else
+                    next_diff_v := diff_r - 1;
+                end if;
+
+                next_diff  <= next_diff_v;
+                next_data  <= std_logic_vector(shift_right(unsigned(data_r), 1));
+                next_count <= count_r + 1;
+
+                if (count_r = WIDTH-1) then
+
+                    -- To be able to assert done in the next cycle, we need
+                    -- to send data to the result register this cycle. Also, we
+                    -- need to use the variable version of diff since the
+                    -- register or next_result signal won't be updated yet.
+                    next_result <= std_logic_vector(next_diff_v);
+                    next_state  <= RESTART;
+                end if;
+
+            when RESTART =>
+                -- The restart state is now identical to the start state with
+                -- the exception of the done signal, which is now asserted.
+                -- Basically, the logic for done has been moved from a separate
+                -- register into logic based on the state register.
+
+                done       <= '1';
+                next_diff  <= (others => '0');
+                next_count <= (others => '0');
+                next_data  <= data;
+
+                -- Since done is now combinational logic, we don't want to
+                -- clear it here otherwise it will be cleared in the same
+                -- cycle that go is asserted. If that is desired behavior, it
+                -- is fine to do so, but the specification for this entity
+                -- requires done to be cleared one cycle after the assertion
+                -- of go.
+                --
+                -- One reason to avoid clearing done within the same cycle as
+                -- go is that if the logic for go outside this module depends
+                -- on done, it creates a combinational loop. The 1-cycle delay
+                -- avoids that problem.
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+                
+            when others => null;
+        end case;
+    end process;
+end fsmd_2p_2;
+
+
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -453,7 +575,8 @@ architecture default_arch of bit_diff is
 begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p_2)
-    U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p)
+    U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_2)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
