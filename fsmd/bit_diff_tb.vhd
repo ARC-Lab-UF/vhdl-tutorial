@@ -1,6 +1,13 @@
 -- Greg Stitt
 -- University of Florida
 
+-- Provides a basic testbench for the bit_diff entity. Checks for correct
+-- outputs and ensures done is cleared at the wrong time, but does not
+-- use a timeout for the assertion of done. If an implementation never asserts
+-- done, the testbench will simply wait forever. The testbenches section will
+-- show a much better way of creating a testbench, or see the SystemVerilog
+-- tutorial.
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

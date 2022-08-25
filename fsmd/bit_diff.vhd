@@ -268,20 +268,20 @@ begin
                     end if;
 
                     diff_r <= next_diff;
-                    
+
                     -- Shift out the current lowest bit.
                     data_r <= std_logic_vector(shift_right(unsigned(data_r), 1));
 
                     -- Update the count.
                     count_r <= count_r + 1;
-                    
+
                     if (count_r = WIDTH-1) then
                         -- By assigning these here, we can eliminate the
                         -- previous RESTART state.
-                        done_r <= '1';
+                        done_r   <= '1';
                         result_r <= std_logic_vector(next_diff);
-                        state_r <= START;
-                    end if;                    
+                        state_r  <= START;
+                    end if;
 
                 when others => null;
             end case;
@@ -289,6 +289,146 @@ begin
     end process;
     
 end fsmd_1p_2;
+
+
+-- Architecture: fsmd_2p
+-- Description: Implements a 2-process version of the fsmd_1p architecture.
+
+architecture fsmd_2p of bit_diff_example is
+
+    -- Like the 2-process FSM, we have a state_r and next_state signal.
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+
+    -- For a 2-process FSMD, every register needs a signal for the output of
+    -- the register, which is the current value represented by the _r suffix,
+    -- and a signal for the input to the register (i.e., the value for the
+    -- next cycle), which is determined by combinational logic.
+    --
+    -- You don't always have to do this for all registers, which we will show
+    -- in later examples.
+
+    signal data_r, next_data     : std_logic_vector(data'range);
+    signal result_r, next_result : std_logic_vector(result'range);
+    signal count_r, next_count   : unsigned(integer(ceil(log2(real(WIDTH))))-1 downto 0);
+    signal diff_r, next_diff     : signed(result'range);
+    signal done_r, next_done     : std_logic;
+    
+begin
+    result <= result_r;
+    done   <= done_r;
+
+    -- The first process simply implements all the registers.
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            result_r <= (others => '0');
+            done_r   <= '0';
+            diff_r   <= (others => '0');
+            count_r  <= (others => '0');
+            data_r   <= (others => '0');
+            state_r  <= START;
+            
+        elsif (rising_edge(clk)) then
+            result_r <= next_result;
+            done_r   <= next_done;
+            diff_r   <= next_diff;
+            count_r  <= next_count;
+            data_r   <= next_data;
+            state_r  <= next_state;
+        end if;
+    end process;
+
+    -- The second process implements any combinational logic, which includes
+    -- the inputs to all the registers, and any other combinational logic. For
+    -- example, in this architecture the done output is not registered like in
+    -- the 1-process model. Although the 2-process model seems like overkill for
+    -- this example, the advantage is that you can control exactly what is
+    -- registered. For complex designs, registering everything is usually not
+    -- ideal, which makes the 2-process model useful. Also, there are ways to
+    -- make it more concise in later examples.
+    --
+    -- VHDL 2008's process(all) would be helpful here. To make sure you aren't
+    -- missing any signals from the sensitivity list, synthesize once before
+    -- simulating. Synthesis usually gives warnings about signals missing from
+    -- the sensitivity list, which can save you a lot of time debugging.
+    process(go, result_r, done_r, diff_r, data_r, count_r, state_r)
+        variable next_diff_v : signed(diff_r'range);
+    begin
+        -- Since this is combinational logic, we should never be assigning a
+        -- _r version of the signals. The left hand side should either be a
+        -- next_ signal, or other signals that correspond to combinational
+        -- logic.
+        --
+        -- Here we assign default values to all the register inputs to make sure
+        -- we don't have latches. For a register, a good default value is
+        -- usually the current value because then we only have to assign the
+        -- signal later if the register is going to change.
+        next_result <= result_r;
+        next_done   <= done_r;
+        next_diff   <= diff_r;
+        next_data   <= data_r;
+        next_count  <= count_r;
+        next_state  <= state_r;
+
+        case (state_r) is
+            when START =>
+
+                next_done   <= '0';
+                next_result <= (others => '0');
+                next_diff   <= (others => '0');
+                next_data   <= data;
+                next_count  <= (others => '0');
+
+                -- Without the default assignment at the beginning of the
+                -- process, this would result in a latch in the 2-process FSMD.
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when COMPUTE =>
+                if (data_r(0) = '1') then
+                    next_diff_v := diff_r + 1;
+                else
+                    next_diff_v := diff_r - 1;
+                end if;
+
+                next_diff  <= next_diff_v;
+                next_data  <= std_logic_vector(shift_right(unsigned(data_r), 1));
+                next_count <= count_r + 1;
+
+
+                -- Here, we could compare with next_count also and get rid of
+                -- the -1. However, that would be non-ideal for two reasons.
+                -- First, the addition for the count becomes an input to the
+                -- comparator without a register in between, which could
+                -- increase the length of the critical path and slow down the
+                -- clock. Second, the count signal would need an extra bit for
+                -- the new condition to ever be true, which would increase the
+                -- size of the adder, the comparator, and the register. 
+                if (count_r = WIDTH-1) then
+                    next_done   <= '1';
+                    next_result <= std_logic_vector(next_diff_v);
+                    next_state  <= RESTART;
+                end if;
+
+            when RESTART =>
+                -- The restart state here doesn't really do much
+                -- different than the start state, so we could easily
+                -- combine them like before.
+                next_diff  <= (others => '0');
+                next_count <= (others => '0');
+                next_data  <= data;
+
+                if (go = '1') then
+                    next_done  <= '0';
+                    next_state <= COMPUTE;
+                end if;
+                
+            when others => null;
+        end case;
+    end process;
+end fsmd_2p;
 
 
 
@@ -312,7 +452,8 @@ end bit_diff;
 architecture default_arch of bit_diff is
 begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p)
-    U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p_2)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p_2)
+    U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
