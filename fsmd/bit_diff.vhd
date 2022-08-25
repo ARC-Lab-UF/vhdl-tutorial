@@ -514,9 +514,9 @@ begin
                 if (count_r = WIDTH-1) then
 
                     -- To be able to assert done in the next cycle, we need
-                    -- to send data to the result register this cycle. Also, we
-                    -- need to use the variable version of diff since the
-                    -- register or next_result signal won't be updated yet.
+                    -- to send the new diff to the result register this cycle.
+                    -- Also, we need to use the variable version of diff since
+                    -- the register or next_result signal won't be updated yet.
                     next_result <= std_logic_vector(next_diff_v);
                     next_state  <= RESTART;
                 end if;
@@ -553,6 +553,227 @@ begin
 end fsmd_2p_2;
 
 
+-- Architecture: fsmd_2p_3
+-- Description: The first 2-process FSMD separated all registered logic into 
+-- two processes, where each signal has a _r and next version. The 2nd 2-process
+-- FSMD made the done signal combinational logic, while leaving the rest of the
+-- code the same. Since the vast majority of the design is registered, a third 
+-- alternative is to leave all registered logic within the original process used
+-- in the 1-process model, and only pull out the combinational logic into the
+-- combinational process. The advantage of this strategy is that you don't need
+-- the next version of most of the signals.
+
+architecture fsmd_2p_3 of bit_diff_example is
+
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r : state_t;
+
+    signal data_r   : std_logic_vector(data'range);
+    signal result_r : std_logic_vector(result'range);
+    signal count_r  : unsigned(integer(ceil(log2(real(WIDTH))))-1 downto 0);
+    signal diff_r   : signed(result'range);
+    
+begin
+    result <= result_r;
+
+    -- Note that this code is almost identical to a 1-process FSMD. We have
+    -- simply removed the done logic.
+    process(clk, rst)
+        variable next_diff_v : signed(diff_r'range);
+    begin
+        if (rst = '1') then
+            result_r <= (others => '0');
+            diff_r   <= (others => '0');
+            count_r  <= (others => '0');
+            data_r   <= (others => '0');
+            state_r  <= START;
+            
+        elsif (rising_edge(clk)) then
+            case (state_r) is
+                when START =>
+                    result_r <= (others => '0');
+                    diff_r   <= (others => '0');
+                    count_r  <= (others => '0');
+                    data_r   <= data;
+
+                    if (go = '1') then
+                        state_r <= COMPUTE;
+                    end if;
+
+                when COMPUTE =>
+                    if (data_r(0) = '1') then
+                        next_diff_v := diff_r + 1;
+                    else
+                        next_diff_v := diff_r - 1;
+                    end if;
+
+                    diff_r  <= next_diff_v;
+                    data_r  <= std_logic_vector(shift_right(unsigned(data_r), 1));
+                    count_r <= count_r + 1;
+
+                    if (count_r = WIDTH-1) then
+                        result_r <= std_logic_vector(next_diff_v);
+                        state_r  <= RESTART;
+                    end if;
+
+                    
+                when RESTART =>
+                    count_r <= (others => '0');
+                    data_r  <= data;
+                    diff_r  <= (others => '0');
+
+                    if (go = '1') then
+                        state_r <= COMPUTE;
+                    end if;
+
+                when others => null;
+            end case;
+
+            
+        end if;
+    end process;
+
+    -- Since we actually want registers for all the code above, it is not
+    -- necessary to add next signals for any of them, including the state_r.
+    -- Instead, we'll just pull out the done_r signal and make it combinational
+    -- logic in this process.
+    process(state_r)
+    begin
+        case (state_r) is
+            when START =>
+                done <= '0';
+                
+            when COMPUTE =>
+                done <= '0';
+                
+            when RESTART =>
+                done <= '1';
+
+            when others => null;
+        end case;
+    end process;
+
+    -- Alternatively, we could have just done this, although a case statement
+    -- will usually become beneficial for large numbers of states.
+    --done <= '1' when state_r == RESTART else '0';
+    
+end fsmd_2p_3;
+
+
+
+-- Architecture: fsmd_2p_4
+-- Description: This extends the previous architecture by also separating
+-- state_r and next_state, in addition to having done as combinational logic.
+
+architecture fsmd_2p_4 of bit_diff_example is
+
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+
+    signal data_r   : std_logic_vector(data'range);
+    signal result_r : std_logic_vector(result'range);
+    signal count_r  : unsigned(integer(ceil(log2(real(WIDTH))))-1 downto 0);
+    signal diff_r   : signed(result'range);
+    
+begin
+    result <= result_r;
+
+    process(clk, rst)
+        variable next_diff_v : signed(diff_r'range);
+    begin
+        if (rst = '1') then
+            result_r <= (others => '0');
+            diff_r   <= (others => '0');
+            count_r  <= (others => '0');
+            data_r   <= (others => '0');
+            state_r  <= START;
+            
+        elsif (rising_edge(clk)) then
+
+            -- To add the next_state variable, this process now simply creates
+            -- the state register.
+            state_r <= next_state;
+
+            -- All other signals are still registered without a next version,
+            -- since we don't have a need for the next version.
+            case (state_r) is
+                when START =>
+                    result_r <= (others => '0');
+                    diff_r   <= (others => '0');
+                    count_r  <= (others => '0');
+                    data_r   <= data;
+                    -- Notice there is no next-state logic here anymore. It is
+                    -- moved to the combinational process.
+
+                when COMPUTE =>
+                    if (data_r(0) = '1') then
+                        next_diff_v := diff_r + 1;
+                    else
+                        next_diff_v := diff_r - 1;
+                    end if;
+
+                    diff_r  <= next_diff_v;
+                    data_r  <= std_logic_vector(shift_right(unsigned(data_r), 1));
+                    count_r <= count_r + 1;
+
+                    -- This is non-ideal, but we have to replicate the 
+                    -- transition-sensitive logic here. One disadvantage of
+                    -- this approach is that replicating this logic is error
+                    -- prone because if we change it in one place, we might
+                    -- forget to change it in another.
+                    -- We could also change result to have a next version, and
+                    -- move this transition entirely to the combinational
+                    -- process.
+                    if (count_r = WIDTH-1) then
+                        result_r <= std_logic_vector(next_diff_v);
+                    end if;
+
+                    
+                when RESTART =>
+                    count_r <= (others => '0');
+                    data_r  <= data;
+                    diff_r  <= (others => '0');
+                    
+                when others => null;
+            end case;
+        end if;
+    end process;
+
+    -- In this version, we have done here since it isn't registered, in addition
+    -- to the next_state logic, so we can see both the current state and the
+    -- next state.
+    --
+    -- We have to be very careful with the sensitivity list
+    process(state_r, go, count_r)
+    begin
+        next_state <= state_r;
+
+        case (state_r) is
+            when START =>
+                done <= '0';
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+                
+            when COMPUTE =>
+                done <= '0';
+                if (count_r = WIDTH-1) then
+                    next_state <= RESTART;
+                end if;
+                
+            when RESTART =>
+                done <= '1';
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when others => null;
+        end case;
+    end process;
+    
+end fsmd_2p_4;
+
+
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -576,7 +797,9 @@ begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p_2)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p)
-    U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_2)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_2)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_3)
+    U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_4)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
