@@ -39,7 +39,7 @@
 -- data  : The input to be used to calculate the bit difference
 
 --- OUTPUTS ---
---result : The calculated result. Is valid when done is asserted.
+-- result : The calculated result. Is valid when done is asserted.
 -- done : Asserted when the result is valid. Remains asserted indefinitely
 --        until go is asserted again, and then is cleared on the next cycle.
 -- ============================================================================ 
@@ -49,7 +49,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
-entity bit_diff_example is
+entity bit_diff is
     generic (
         WIDTH : positive
         );
@@ -61,7 +61,7 @@ entity bit_diff_example is
         result : out std_logic_vector(integer(ceil(log2(real(2*WIDTH+1))))-1 downto 0);
         done   : out std_logic
         );          
-end bit_diff_example;
+end bit_diff;
 
 
 ----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ end bit_diff_example;
 -- See the FSMD illustration in bit_diff.pdf for a graphical representation
 -- of this module.
 
-architecture fsmd_1p of bit_diff_example is
+architecture fsmd_1p of bit_diff is
     -- Like the FSM, we define the states using a custom type.
     type state_t is (START, COMPUTE, RESTART);
 
@@ -210,7 +210,7 @@ end fsmd_1p;
 -- which is another reason not to pre-optimize until you know the appropriate
 -- tradeoff your are looking for.
 
-architecture fsmd_1p_2 of bit_diff_example is
+architecture fsmd_1p_2 of bit_diff is
     -- We only have two states in this architecture.
     type state_t is (START, COMPUTE);
     signal state_r : state_t;
@@ -294,7 +294,7 @@ end fsmd_1p_2;
 -- Architecture: fsmd_2p
 -- Description: Implements a 2-process version of the fsmd_1p architecture.
 
-architecture fsmd_2p of bit_diff_example is
+architecture fsmd_2p of bit_diff is
 
     -- Like the 2-process FSM, we have a state_r and next_state signal.
     type state_t is (START, COMPUTE, RESTART);
@@ -443,7 +443,7 @@ end fsmd_2p;
 -- In general, the 2-process model is useful because the designer gets to
 -- decide what is registered.
 
-architecture fsmd_2p_2 of bit_diff_example is
+architecture fsmd_2p_2 of bit_diff is
 
     type state_t is (START, COMPUTE, RESTART);
     signal state_r, next_state : state_t;
@@ -563,7 +563,7 @@ end fsmd_2p_2;
 -- combinational process. The advantage of this strategy is that you don't need
 -- the next version of most of the signals.
 
-architecture fsmd_2p_3 of bit_diff_example is
+architecture fsmd_2p_3 of bit_diff is
 
     type state_t is (START, COMPUTE, RESTART);
     signal state_r : state_t;
@@ -665,7 +665,7 @@ end fsmd_2p_3;
 -- Description: This extends the previous architecture by also separating
 -- state_r and next_state, in addition to having done as combinational logic.
 
-architecture fsmd_2p_4 of bit_diff_example is
+architecture fsmd_2p_4 of bit_diff is
 
     type state_t is (START, COMPUTE, RESTART);
     signal state_r, next_state : state_t;
@@ -780,7 +780,7 @@ end fsmd_2p_4;
 -- NOTE: Personally, I have never encountered an example where I would use this
 -- strategy.
 
-architecture fsmd_3p of bit_diff_example is
+architecture fsmd_3p of bit_diff is
 
     type state_t is (START, COMPUTE, RESTART);
     signal state_r, next_state : state_t;
@@ -891,7 +891,7 @@ end fsmd_3p;
 -- Like the 3-process version, despite seeing this style in other code, I
 -- have never encountered a situation where I would use it.
 
-architecture fsmd_4p of bit_diff_example is
+architecture fsmd_4p of bit_diff is
 
     type state_t is (START, COMPUTE, RESTART);
     signal state_r, next_state : state_t;
@@ -1047,7 +1047,7 @@ end fsmd_4p;
 -- Description: FSM+D implementation 1, which simply connects datapath 1 and
 -- fsm1.
 
-architecture fsm_plus_d1 of bit_diff_example is
+architecture fsm_plus_d1 of bit_diff is
 
     signal count_done : std_logic;
     signal data_sel   : std_logic;
@@ -1098,7 +1098,7 @@ end fsm_plus_d1;
 -- Description: FSM+D implementation 2, which simply connects datapath 2 and
 -- fsm1.
 
-architecture fsm_plus_d2 of bit_diff_example is
+architecture fsm_plus_d2 of bit_diff is
 
     signal count_done : std_logic;
     signal data_sel   : std_logic;
@@ -1157,7 +1157,7 @@ end fsm_plus_d2;
 -- but for most FPGAs, that would just add back in the original muxes we wanted
 -- to remove.
 
-architecture fsm_plus_d3 of bit_diff_example is
+architecture fsm_plus_d3 of bit_diff is
 
     signal count_done : std_logic;
     signal data_sel   : std_logic;
@@ -1207,7 +1207,7 @@ end fsm_plus_d3;
 -- Description: Combines fsm3 and datapath3 to reduce the area of earlier
 -- versions with a safer reset strategy.
 
-architecture fsm_plus_d4 of bit_diff_example is
+architecture fsm_plus_d4 of bit_diff is
 
     signal count_done : std_logic;
     signal data_sel   : std_logic;
@@ -1254,38 +1254,22 @@ begin
 end fsm_plus_d4;
 
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.math_real.all;
-
-entity bit_diff is
-    generic (
-        WIDTH : positive
-        );
-    port (
-        clk    : in  std_logic;
-        rst    : in  std_logic;
-        go     : in  std_logic;
-        data   : in  std_logic_vector(WIDTH-1 downto 0);
-        result : out std_logic_vector(integer(ceil(log2(real(2*WIDTH+1))))-1 downto 0);
-        done   : out std_logic
-        );          
-end bit_diff;
+-- Default architecture for easily evaluating all the different architectures.
 
 architecture default_arch of bit_diff is
 begin
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_1p_2)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_2)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_3)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_4)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_3p)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_4p)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d1)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d2)
-    --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d3)
-    U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d4)
+    U_BIT_DIFF : entity work.bit_diff(fsmd_1p)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_1p_2)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_2p)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_2p_2)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_2p_3)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_2p_4)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_3p)
+    --U_BIT_DIFF : entity work.bit_diff(fsmd_4p)
+    --U_BIT_DIFF : entity work.bit_diff(fsm_plus_d1)
+    --U_BIT_DIFF : entity work.bit_diff(fsm_plus_d2)
+    --U_BIT_DIFF : entity work.bit_diff(fsm_plus_d3)
+    --U_BIT_DIFF : entity work.bit_diff(fsm_plus_d4)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
