@@ -596,7 +596,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 -- Entity: fsm2
--- Updated FSM to work with datapath3, which uses separate rests for the
+-- Updated FSM to work with datapath3, which uses separate resets for the
 -- diff and count registers to eliminate the previous muxes.
 
 entity fsm2 is
@@ -699,6 +699,120 @@ begin
 
                 if (go = '1') then
                     next_state <= COMPUTE;
+                end if;
+
+            when others => null;
+        end case;
+    end process;
+    
+end default_arch;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+
+-- Entity: fsm3
+-- Descrition: This FSM modifies fsm2 by registering the diff and count reset
+-- signals. These registers unfortunately require an extra INIT state to delay
+-- the start of the computation by a cycle. However, it does provide a safer
+-- reset strategy.
+
+entity fsm3 is
+    port (
+        clk        : in  std_logic;
+        rst        : in  std_logic;
+        go         : in  std_logic;
+        count_done : in  std_logic;
+        done       : out std_logic;
+        data_sel   : out std_logic;
+        data_en    : out std_logic;
+        diff_rst   : out std_logic;
+        diff_en    : out std_logic;
+        count_rst  : out std_logic;
+        count_en   : out std_logic;
+        result_en  : out std_logic
+        );
+end fsm3;
+
+architecture default_arch of fsm3 is
+    type state_t is (START, INIT, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+
+    signal count_rst_r, next_count_rst : std_logic;
+    signal diff_rst_r, next_diff_rst : std_logic;
+    
+begin
+    -- Register the controlled asynchronous resets to be safer.
+    count_rst <= count_rst_r;
+    diff_rst <= diff_rst_r;
+    
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            state_r <= START;
+            count_rst_r <= '1';
+            diff_rst_r <= '1';
+        elsif (rising_edge(clk)) then
+            state_r <= next_state;
+            count_rst_r <= next_count_rst;
+            diff_rst_r <= next_diff_rst;
+        end if;
+    end process;
+
+    process(go, state_r, count_done)
+    begin
+        done <= '0';
+
+        result_en <= '0';
+        diff_en   <= '0';
+        count_en  <= '0';
+        data_en   <= '0';
+
+        data_sel  <= '0';
+
+        next_count_rst <= '0';
+        next_diff_rst  <= '0';
+
+        next_state <= state_r;
+
+        case (state_r) is
+            when START =>
+                next_diff_rst  <= '1';
+                next_count_rst  <= '1';
+                data_en  <= '1';
+                data_sel <= '1';
+
+                if (go = '1') then
+                    next_state <= INIT;
+                end if;
+
+            when INIT =>
+                -- We need this extra state to allow time for the registered
+                -- resets to update.
+                next_state <= COMPUTE;
+
+            when COMPUTE =>
+                diff_en <= '1';
+                data_en <= '1';
+                count_en <= '1';
+
+                if (count_done = '1') then
+                    result_en  <= '1';
+                    next_state <= RESTART;
+                end if;
+                
+            when RESTART =>
+                done <= '1';
+                next_diff_rst  <= '1';
+                next_count_rst <= '1';
+                data_en  <= '1';
+                data_sel <= '1';
+
+                if (go = '1') then
+                    next_state <= INIT;
                 end if;
 
             when others => null;

@@ -1203,6 +1203,55 @@ begin
             result => result);    
 end fsm_plus_d3;
 
+-- Architecture: fsm_plus_d4
+-- Description: Combines fsm3 and datapath3 to reduce the area of earlier
+-- versions with a safer reset strategy.
+
+architecture fsm_plus_d4 of bit_diff_example is
+
+    signal count_done : std_logic;
+    signal data_sel   : std_logic;
+    signal data_en    : std_logic;
+    signal diff_rst   : std_logic;
+    signal diff_en    : std_logic;
+    signal count_rst  : std_logic;
+    signal count_en   : std_logic;
+    signal result_en  : std_logic;
+    
+begin
+
+    U_FSM : entity work.fsm3
+        port map (
+            clk => clk,
+            rst => rst,
+            go => go,
+            count_done => count_done,
+            done => done,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_rst => diff_rst,
+            diff_en => diff_en,
+            count_rst => count_rst,
+            count_en => count_en,
+            result_en => result_en
+            );
+
+    U_DATAPATH : entity work.datapath3
+        generic map (WIDTH => WIDTH)
+        port map (
+            clk => clk,
+            rst => rst,
+            data => data,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_rst => diff_rst,
+            diff_en => diff_en,
+            count_rst => count_rst,
+            count_en => count_en,
+            result_en => result_en,
+            count_done => count_done,
+            result => result);    
+end fsm_plus_d4;
 
 
 library ieee;
@@ -1235,7 +1284,8 @@ begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_4p)
     --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d1)
     --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d2)
-    U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d3)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d3)
+    U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d4)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
