@@ -176,7 +176,9 @@ architecture str1 of datapath1 is
 
     signal data_mux, data_r, data_shift            : std_logic_vector(WIDTH-1 downto 0);
     signal diff_r, add_in1_mux, diff_add, diff_mux : std_logic_vector(DIFF_WIDTH-1 downto 0);
-    signal count_add, count_mux, count_r           : std_logic_vector(WIDTH-1 downto 0);
+
+    constant COUNT_WIDTH : integer := integer(ceil(log2(real(WIDTH))));    
+    signal count_add, count_mux, count_r           : std_logic_vector(COUNT_WIDTH-1 downto 0);
     
 begin
     -- Mux that defines provides input to the data register.
@@ -210,7 +212,7 @@ begin
 
     -- Selects a 1 or -1 input to the adder.
     U_ADD_MUX : entity work.mux2x1
-        generic map (WIDTH => WIDTH)
+        generic map (WIDTH => add_in1_mux'length)
         port map (
             -- Unfortunately, VHDL 1993 and 2001 are very restrictive about
             -- expressions that can appear in port map associations. You will
@@ -231,15 +233,15 @@ begin
             -- error. In that case, you can just declare a constant in the
             -- architecture and use that constant in the port map.
 
-            in0    => std_logic_vector(to_signed(-1, WIDTH)),
-            in1    => std_logic_vector(to_signed(1, WIDTH)),
+            in0    => std_logic_vector(to_signed(-1, add_in1_mux'length)),
+            in1    => std_logic_vector(to_signed(1, add_in1_mux'length)),
             sel    => data_r(0),
             output => add_in1_mux
             );
 
     -- Adds the current difference with the output of the add_in1_mux (1 or -1).
     U_ADD : entity work.add
-        generic map (WIDTH => WIDTH)
+        generic map (WIDTH => diff_r'length)
         port map (in0 => diff_r,
                   in1 => add_in1_mux,
                   sum => diff_add);
@@ -276,7 +278,7 @@ begin
     -- Counter logic.
 
     U_COUNT_MUX : entity work.mux2x1
-        generic map (WIDTH => WIDTH)
+        generic map (WIDTH => count_mux'length)
         port map (
             in0    => count_add,
             in1    => (others => '0'),
@@ -286,7 +288,7 @@ begin
 
 
     U_COUNT_REG : entity work.reg
-        generic map (WIDTH => WIDTH)
+        generic map (WIDTH => count_r'length)
         port map (clk    => clk,
                   rst    => rst,
                   en     => count_en,
@@ -295,15 +297,15 @@ begin
 
 
     U_COUNT_ADD : entity work.add
-        generic map (WIDTH => WIDTH)
-        port map (in0 => std_logic_vector(to_unsigned(1, WIDTH)),
+        generic map (WIDTH => count_r'length)
+        port map (in0 => std_logic_vector(to_unsigned(1, count_r'length)),
                   in1 => count_r,
                   sum => count_add);
 
     U_EQ : entity work.eq
-        generic map (WIDTH => WIDTH)
+        generic map (WIDTH => count_r'length)
         port map (in0    => count_r,
-                  in1    => std_logic_vector(to_unsigned(1, WIDTH)),
+                  in1    => std_logic_vector(to_unsigned(WIDTH-1, count_r'length)),
                   output => count_done);
 
 end str1;
@@ -391,7 +393,7 @@ begin
         end if;
     end process;
 
-    process(go, state_r)
+    process(go, state_r, count_done)
     begin
         done <= '0';
 

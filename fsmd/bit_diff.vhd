@@ -1076,7 +1076,7 @@ begin
             result_en => result_en
             );
 
-    U_DATAPATH : entity work.datapath1
+    U_DATAPATH : entity work.datapath1(str1)
         generic map (WIDTH => WIDTH)
         port map (
             clk => clk,
