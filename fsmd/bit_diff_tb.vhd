@@ -26,13 +26,13 @@ architecture random_tb of bit_diff_tb is
     signal rst            : std_logic;
     signal go             : std_logic;
     signal data           : std_logic_vector(WIDTH-1 downto 0);
-    signal result         : std_logic_vector(WIDTH-1 downto 0);
+    signal result         : std_logic_vector(integer(ceil(log2(real(2*WIDTH+1))))-1 downto 0);
     signal done           : std_logic;
 
     signal check_done_low : std_logic;
         
     function model(d : std_logic_vector(WIDTH-1 downto 0)) return signed is
-        variable diff : signed(WIDTH-1 downto 0) := (others => '0');
+        variable diff : signed(integer(ceil(log2(real(2*WIDTH+1))))-1 downto 0) := (others => '0');
         variable data : unsigned(WIDTH-1 downto 0);
     begin
         data := unsigned(d);

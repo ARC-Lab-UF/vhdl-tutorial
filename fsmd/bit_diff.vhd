@@ -58,7 +58,7 @@ entity bit_diff_example is
         rst    : in  std_logic;
         go     : in  std_logic;
         data   : in  std_logic_vector(WIDTH-1 downto 0);
-        result : out std_logic_vector(WIDTH-1 downto 0);
+        result : out std_logic_vector(integer(ceil(log2(real(2*WIDTH+1))))-1 downto 0);
         done   : out std_logic
         );          
 end bit_diff_example;
@@ -1038,9 +1038,65 @@ end fsmd_4p;
 -- and then hope that it synthesizes the circuit you want.
 
 
+-------------------------------------------------------------------------
+-- FSM+D implementations
+-- Make sure to see bit_diff_extra.vhd for the datapath and FSM definitions.
+
+
+-- Architecture: fsm_plus_d1
+-- Description: FSM+D implementation 1, which simply connects datapath 1 and
+-- fsm1.
+
+architecture fsm_plus_d1 of bit_diff_example is
+
+    signal count_done : std_logic;
+    signal data_sel   : std_logic;
+    signal data_en    : std_logic;
+    signal diff_sel   : std_logic;
+    signal diff_en    : std_logic;
+    signal count_sel  : std_logic;
+    signal count_en   : std_logic;
+    signal result_en  : std_logic;
+    
+begin
+
+    U_FSM : entity work.fsm1
+        port map (
+            clk => clk,
+            rst => rst,
+            go => go,
+            count_done => count_done,
+            done => done,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_sel => diff_sel,
+            diff_en => diff_en,
+            count_sel => count_sel,
+            count_en => count_en,
+            result_en => result_en
+            );
+
+    U_DATAPATH : entity work.datapath1
+        generic map (WIDTH => WIDTH)
+        port map (
+            clk => clk,
+            rst => rst,
+            data => data,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_sel => diff_sel,
+            diff_en => diff_en,
+            count_sel => count_sel,
+            count_en => count_en,
+            result_en => result_en,
+            count_done => count_done,
+            result => result);    
+end fsm_plus_d1;
+
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.math_real.all;
 
 entity bit_diff is
     generic (
@@ -1051,7 +1107,7 @@ entity bit_diff is
         rst    : in  std_logic;
         go     : in  std_logic;
         data   : in  std_logic_vector(WIDTH-1 downto 0);
-        result : out std_logic_vector(WIDTH-1 downto 0);
+        result : out std_logic_vector(integer(ceil(log2(real(2*WIDTH+1))))-1 downto 0);
         done   : out std_logic
         );          
 end bit_diff;
@@ -1065,7 +1121,8 @@ begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_3)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_4)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_3p)
-    U_BIT_DIFF : entity work.bit_diff_example(fsmd_4p)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsmd_4p)
+    U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d1)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,
