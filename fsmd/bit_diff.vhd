@@ -1076,7 +1076,7 @@ begin
             result_en => result_en
             );
 
-    U_DATAPATH : entity work.datapath1(str1)
+    U_DATAPATH : entity work.datapath1
         generic map (WIDTH => WIDTH)
         port map (
             clk => clk,
@@ -1092,6 +1092,117 @@ begin
             count_done => count_done,
             result => result);    
 end fsm_plus_d1;
+
+
+-- Architecture: fsm_plus_d2
+-- Description: FSM+D implementation 2, which simply connects datapath 2 and
+-- fsm1.
+
+architecture fsm_plus_d2 of bit_diff_example is
+
+    signal count_done : std_logic;
+    signal data_sel   : std_logic;
+    signal data_en    : std_logic;
+    signal diff_sel   : std_logic;
+    signal diff_en    : std_logic;
+    signal count_sel  : std_logic;
+    signal count_en   : std_logic;
+    signal result_en  : std_logic;
+    
+begin
+
+    U_FSM : entity work.fsm1
+        port map (
+            clk => clk,
+            rst => rst,
+            go => go,
+            count_done => count_done,
+            done => done,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_sel => diff_sel,
+            diff_en => diff_en,
+            count_sel => count_sel,
+            count_en => count_en,
+            result_en => result_en
+            );
+
+    U_DATAPATH : entity work.datapath2
+        generic map (WIDTH => WIDTH)
+        port map (
+            clk => clk,
+            rst => rst,
+            data => data,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_sel => diff_sel,
+            diff_en => diff_en,
+            count_sel => count_sel,
+            count_en => count_en,
+            result_en => result_en,
+            count_done => count_done,
+            result => result);    
+end fsm_plus_d2;
+
+
+-- Architecture: fsm_plus_d3
+-- Description: FSM+D implementation 3, which connects datapath3 and fsm2.
+
+-- NOTE: This architecture might not always be safe. The controller is using
+-- combinational logic to control asynchronous resets within the datapath.
+-- If there are ever glitches on the combinational logic, it could potentially
+-- cause problems.
+--
+-- One potential fix would be to change the datapath to use synchronous resets,
+-- but for most FPGAs, that would just add back in the original muxes we wanted
+-- to remove.
+
+architecture fsm_plus_d3 of bit_diff_example is
+
+    signal count_done : std_logic;
+    signal data_sel   : std_logic;
+    signal data_en    : std_logic;
+    signal diff_rst   : std_logic;
+    signal diff_en    : std_logic;
+    signal count_rst  : std_logic;
+    signal count_en   : std_logic;
+    signal result_en  : std_logic;
+    
+begin
+
+    U_FSM : entity work.fsm2
+        port map (
+            clk => clk,
+            rst => rst,
+            go => go,
+            count_done => count_done,
+            done => done,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_rst => diff_rst,
+            diff_en => diff_en,
+            count_rst => count_rst,
+            count_en => count_en,
+            result_en => result_en
+            );
+
+    U_DATAPATH : entity work.datapath3
+        generic map (WIDTH => WIDTH)
+        port map (
+            clk => clk,
+            rst => rst,
+            data => data,
+            data_sel => data_sel,
+            data_en => data_en,
+            diff_rst => diff_rst,
+            diff_en => diff_en,
+            count_rst => count_rst,
+            count_en => count_en,
+            result_en => result_en,
+            count_done => count_done,
+            result => result);    
+end fsm_plus_d3;
+
 
 
 library ieee;
@@ -1122,7 +1233,9 @@ begin
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_2p_4)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_3p)
     --U_BIT_DIFF : entity work.bit_diff_example(fsmd_4p)
-    U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d1)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d1)
+    --U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d2)
+    U_BIT_DIFF : entity work.bit_diff_example(fsm_plus_d3)
         generic map (WIDTH => WIDTH)
         port map (
             clk    => clk,

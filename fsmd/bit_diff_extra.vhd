@@ -115,11 +115,12 @@ begin
     output <= '1' when in0 = in1 else '0';
 end default_arch;
 
+----------------------------------------------------------------------
+-- Datapaths
+-- 
+-- See bit_diff.pdf for a graphical illustration of these datapaths.
 
--- Entity: datapath1
--- Description: This entity creates the illustrated datapath structurally.
---
--- See bit_diff.pdf for a graphical illustration of this datapath.
+-- Implements datapath1 from bit_diff.pdf
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -146,7 +147,7 @@ entity datapath1 is
         );
 end datapath1;
 
-architecture str1 of datapath1 is
+architecture bhv of datapath1 is
 
     constant DIFF_WIDTH : integer := result'length;
 
@@ -177,8 +178,8 @@ architecture str1 of datapath1 is
     signal data_mux, data_r, data_shift            : std_logic_vector(WIDTH-1 downto 0);
     signal diff_r, add_in1_mux, diff_add, diff_mux : std_logic_vector(DIFF_WIDTH-1 downto 0);
 
-    constant COUNT_WIDTH : integer := integer(ceil(log2(real(WIDTH))));    
-    signal count_add, count_mux, count_r           : std_logic_vector(COUNT_WIDTH-1 downto 0);
+    constant COUNT_WIDTH                 : integer := integer(ceil(log2(real(WIDTH))));
+    signal count_add, count_mux, count_r : std_logic_vector(COUNT_WIDTH-1 downto 0);
     
 begin
     -- Mux that defines provides input to the data register.
@@ -308,15 +309,46 @@ begin
                   in1    => std_logic_vector(to_unsigned(WIDTH-1, count_r'length)),
                   output => count_done);
 
-end str1;
+end bhv;
 
 
-architecture str2 of datapath1 is
+-- Implements datapath2 from bit_diff.pdf. This could also have a been an
+-- architecture for the previous entity since the port is identical. However,
+-- I separated it be consistent with the figures.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+entity datapath2 is
+    generic (
+        WIDTH : positive
+        );    
+    port (
+        clk        : in  std_logic;
+        rst        : in  std_logic;
+        data       : in  std_logic_vector(WIDTH-1 downto 0);
+        data_sel   : in  std_logic;
+        data_en    : in  std_logic;
+        diff_sel   : in  std_logic;
+        diff_en    : in  std_logic;
+        count_sel  : in  std_logic;
+        count_en   : in  std_logic;
+        result_en  : in  std_logic;
+        count_done : out std_logic;
+        result     : out std_logic_vector(integer(ceil(log2(real(WIDTH*2+1))))-1 downto 0)
+        );
+end datapath2;
+
+architecture bhv of datapath2 is
 
     signal data_mux, data_r, data_shift            : std_logic_vector(WIDTH-1 downto 0);
     signal diff_r, add_in1_mux, diff_add, diff_mux : std_logic_vector(result'range);
-    signal count_add, count_mux, count_r           : std_logic_vector(WIDTH-1 downto 0);
     signal result_r                                : std_logic_vector(result'range);
+
+    constant COUNT_WIDTH                 : integer := integer(ceil(log2(real(WIDTH))));
+    signal count_add, count_mux, count_r : std_logic_vector(COUNT_WIDTH-1 downto 0);
     
 begin
     -- Data mux and shift
@@ -328,11 +360,11 @@ begin
     -- signed/unsigned.
     add_in1_mux <= std_logic_vector(to_unsigned(1, add_in1_mux'length)) when data_r(0) = '1' else std_logic_vector(to_signed(-1, add_in1_mux'length));
     diff_add    <= std_logic_vector(unsigned(diff_r) + unsigned(add_in1_mux));
-    diff_mux    <= (others => '0')                         when diff_sel = '1'  else diff_add;
+    diff_mux    <= (others => '0')                                      when diff_sel = '1'  else diff_add;
 
-    count_mux  <= (others => '0') when count_sel = '1' else count_add;
+    count_mux  <= (others => '0') when count_sel = '1'                                                  else count_add;
     count_add  <= std_logic_vector(unsigned(count_r) + 1);
-    count_done <= '1'             when count_r = std_logic_vector(to_unsigned(WIDTH-1, WIDTH));
+    count_done <= '1'             when count_r = std_logic_vector(to_unsigned(WIDTH-1, count_r'length)) else '0';
 
     -- Not necessary, but compiles with my _r convention for registers.
     result <= result_r;
@@ -352,7 +384,92 @@ begin
             if (count_en = '1') then count_r   <= count_mux; end if;
         end if;
     end process;
-end str2;
+end bhv;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+entity datapath3 is
+    generic (
+        WIDTH : positive
+        );    
+    port (
+        clk        : in  std_logic;
+        rst        : in  std_logic;
+        data       : in  std_logic_vector(WIDTH-1 downto 0);
+        data_sel   : in  std_logic;
+        data_en    : in  std_logic;
+        diff_rst   : in  std_logic;
+        diff_en    : in  std_logic;
+        count_rst  : in  std_logic;
+        count_en   : in  std_logic;
+        result_en  : in  std_logic;
+        count_done : out std_logic;
+        result     : out std_logic_vector(integer(ceil(log2(real(WIDTH*2+1))))-1 downto 0)
+        );
+end datapath3;
+
+
+architecture bhv of datapath3 is
+
+    signal data_mux, data_r, data_shift   : std_logic_vector(WIDTH-1 downto 0);
+    signal diff_r, add_in1_mux, diff_add  : std_logic_vector(result'range);
+    signal result_r                       : std_logic_vector(result'range);
+
+    constant COUNT_WIDTH      : integer := integer(ceil(log2(real(WIDTH))));
+    signal count_add, count_r : std_logic_vector(COUNT_WIDTH-1 downto 0);
+
+    
+begin
+    data_mux   <= data when data_sel = '1' else data_shift;
+    data_shift <= std_logic_vector(shift_right(unsigned(data_r), 1));
+
+    add_in1_mux <= std_logic_vector(to_unsigned(1, add_in1_mux'length)) when data_r(0) = '1' else std_logic_vector(to_signed(-1, add_in1_mux'length));
+    diff_add    <= std_logic_vector(unsigned(diff_r) + unsigned(add_in1_mux));
+
+    count_add  <= std_logic_vector(unsigned(count_r) + 1);
+    count_done <= '1' when count_r = std_logic_vector(to_unsigned(WIDTH-1, count_r'length)) else '0';
+
+    result <= result_r;
+
+    -- Registers tied to the global reset.
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            data_r   <= (others => '0');
+            result_r <= (others => '0');
+        elsif (rising_edge(clk)) then
+            if (data_en = '1') then data_r     <= data_mux; end if;
+            if (result_en = '1') then result_r <= diff_add; end if;
+        end if;
+    end process;
+
+    -- Register for counter, which has its own reset.
+    -- This eliminates the need for the count_mux.
+    process(clk, count_rst)
+    begin
+        if (count_rst = '1') then
+            count_r <= (others => '0');
+        elsif (rising_edge(clk)) then
+            if (count_en = '1') then count_r <= count_add; end if;
+        end if;
+    end process;
+
+    -- Register for diff, which has its own reset.
+    -- This eliminates the need for the diff_mux.
+    process(clk, diff_rst)
+    begin
+        if (diff_rst = '1') then
+            diff_r <= (others => '0');
+        elsif (rising_edge(clk)) then
+            if (count_en = '1') then diff_r <= diff_add; end if;
+        end if;
+    end process;
+    
+end bhv;
 
 
 
@@ -364,18 +481,18 @@ use ieee.math_real.all;
 
 entity fsm1 is
     port (
-        clk       : in  std_logic;
-        rst       : in  std_logic;
-        go        : in  std_logic;
-        count_done : in std_logic;
-        done      : out std_logic;
-        data_sel  : out std_logic;
-        data_en   : out std_logic;
-        diff_sel  : out std_logic;
-        diff_en   : out std_logic;
-        count_sel : out std_logic;
-        count_en  : out std_logic;
-        result_en : out std_logic
+        clk        : in  std_logic;
+        rst        : in  std_logic;
+        go         : in  std_logic;
+        count_done : in  std_logic;
+        done       : out std_logic;
+        data_sel   : out std_logic;
+        data_en    : out std_logic;
+        diff_sel   : out std_logic;
+        diff_en    : out std_logic;
+        count_sel  : out std_logic;
+        count_en   : out std_logic;
+        result_en  : out std_logic
         );
 end fsm1;
 
@@ -467,7 +584,125 @@ begin
                 end if;
 
             when others => null;
-        end case;                
+        end case;
+    end process;
+    
+end default_arch;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+-- Entity: fsm2
+-- Updated FSM to work with datapath3, which uses separate rests for the
+-- diff and count registers to eliminate the previous muxes.
+
+entity fsm2 is
+    port (
+        clk        : in  std_logic;
+        rst        : in  std_logic;
+        go         : in  std_logic;
+        count_done : in  std_logic;
+        done       : out std_logic;
+        data_sel   : out std_logic;
+        data_en    : out std_logic;
+        diff_rst   : out std_logic;
+        diff_en    : out std_logic;
+        count_rst  : out std_logic;
+        count_en   : out std_logic;
+        result_en  : out std_logic
+        );
+end fsm2;
+
+architecture default_arch of fsm2 is
+    type state_t is (START, COMPUTE, RESTART);
+    signal state_r, next_state : state_t;
+    
+begin
+    process(clk, rst)
+    begin
+        if (rst = '1') then
+            state_r <= START;
+        elsif (rising_edge(clk)) then
+            state_r <= next_state;
+        end if;
+    end process;
+
+    process(go, state_r, count_done)
+    begin
+        done <= '0';
+
+        result_en <= '0';
+        diff_en   <= '0';
+        count_en  <= '0';
+        data_en   <= '0';
+
+        data_sel  <= '0';
+
+        -- Use resets now instead of selects.
+        count_rst <= '0';
+        diff_rst  <= '0';
+
+        next_state <= state_r;
+
+        case (state_r) is
+            when START =>
+                -- Replaces diff_r <= (others => '0')
+                diff_rst  <= '1';
+
+                -- Replaces count_r <= (others => '0')
+                count_rst  <= '1';
+
+                -- Replaces data_r <= data
+                data_en  <= '1';
+                data_sel <= '1';
+
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when COMPUTE =>
+
+                -- Selects are '0' by default and don't have to be respecified.
+
+                -- Replaces if statement that defines diff_r.
+                diff_en <= '1';
+
+                -- Replaces data_r <= shift_right(data_r, 1)
+                data_en <= '1';
+
+                -- Replaces count_r <= count_r + 1;
+                count_en <= '1';
+
+                -- Replaces count_r = WIDTH-1
+                if (count_done = '1') then
+                    -- Enable the result register one cycle early to make sure
+                    -- the register output aligns with the assertion of done.
+                    result_en  <= '1';
+                    next_state <= RESTART;
+                end if;
+                
+            when RESTART =>
+                done <= '1';
+
+                -- Replaces diff_r <= (others => '0')
+                diff_rst  <= '1';
+
+                -- Replaces count_r <= (others => '0')
+                count_rst <= '1';
+
+                -- Replaces data_r <= data
+                data_en  <= '1';
+                data_sel <= '1';
+
+                if (go = '1') then
+                    next_state <= COMPUTE;
+                end if;
+
+            when others => null;
+        end case;
     end process;
     
 end default_arch;
