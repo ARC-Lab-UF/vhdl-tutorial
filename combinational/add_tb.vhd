@@ -65,6 +65,8 @@ begin  -- TB
 
             end loop;  -- j
         end loop;  -- i
+
+        report "Tests completed.";
         wait;
 
     end process;
