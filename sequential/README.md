@@ -14,7 +14,7 @@ and placement of all registers. With this schematic, you can easily apply the gu
 
 # Suggested Study Order
 
-1. [Register](reg.vhdl)
+1. [Register](reg.vhd)
     - Illustrates how to create an asynchronous reset, a synchronous reset, an enable/load, and a highly parameterized register with different reset types and activiation levels.
 1. [Examples of Synthesizing Behavioral Code to a Specific Structure](seq_example.vhd)
     - See [architectures.pdf](architectures.pdf) for different example circuits. Each one has a corresponding module in [seq_example.vhd](seq_example.vhd).
