@@ -70,7 +70,7 @@ begin
             -- manipulate it however we want.
             uniform(seed1, seed2, rand_val);
 
-            -- Generates a ranodom input.
+            -- Generates a random input.
             input                        <= std_logic_vector(to_unsigned(integer(floor(rand_val * real(2**WIDTH-1))), WIDTH));
 
             -- Generate a random enable with 75% probability.
