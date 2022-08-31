@@ -307,7 +307,7 @@ begin
 end ARCH3_2;
 
 
--- The following architectures illustrates a slightl simplifications from
+-- The following architectures illustrates a slight simplification from
 -- reading from an output, which is only possible in VHDL 2008. Uncomment
 -- if you tool supports VHDL 2008.
 
