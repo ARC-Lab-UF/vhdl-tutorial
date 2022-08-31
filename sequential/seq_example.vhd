@@ -29,7 +29,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity example is
+entity seq_example is
     generic(
         WIDTH : positive);
     port (
@@ -40,10 +40,10 @@ entity example is
         in3  : in  std_logic_vector(WIDTH-1 downto 0);
         out1 : out std_logic_vector(WIDTH-1 downto 0);
         out2 : out std_logic_vector(WIDTH-1 downto 0));
-end example;
+end seq_example;
 
 
-architecture ARCH1 of example is
+architecture ARCH1 of seq_example is
 begin
     -- Note that despite having combinational logic in the architecture, we are
     -- still using the sequential logic guidelines, which can apply to any
@@ -72,7 +72,7 @@ begin
 end ARCH1;
 
 
-architecture ARCH2 of example is
+architecture ARCH2 of seq_example is
 
     -- ARCH2 has two registers not connected to outputs, which each require an
     -- internal signal.
@@ -136,7 +136,7 @@ begin
 end ARCH2;
 
 
-architecture ARCH2_2 of example is
+architecture ARCH2_2 of seq_example is
 
     -- In this version of ARCH2, we create explicit signals for the two output
     -- registers to ensure all registers are explicit.
@@ -173,7 +173,7 @@ begin
 end ARCH2_2;
 
 
-architecture ARCH3 of example is
+architecture ARCH3 of seq_example is
 
     signal in1_r, in2_r : std_logic_vector(WIDTH-1 downto 0);
 
@@ -253,7 +253,7 @@ begin
 end ARCH3;
 
 
-architecture ARCH3_2 of example is
+architecture ARCH3_2 of seq_example is
 
     signal in1_r, in2_r : std_logic_vector(WIDTH-1 downto 0);
     signal in3_r        : std_logic_vector(WIDTH-1 downto 0);
@@ -311,7 +311,7 @@ end ARCH3_2;
 -- reading from an output, which is only possible in VHDL 2008. Uncomment
 -- if you tool supports VHDL 2008.
 
---architecture ARCH3_2008 of example is
+--architecture ARCH3_2008 of seq_example is
 
 --    signal in1_r, in2_r : std_logic_vector(WIDTH-1 downto 0);
 --    signal in3_r        : std_logic_vector(WIDTH-1 downto 0);
@@ -352,7 +352,7 @@ end ARCH3_2;
 --end ARCH3_2008;
 
 
-architecture ARCH4 of example is
+architecture ARCH4 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
 
@@ -402,7 +402,7 @@ end ARCH4;
 -- This next architecture is a variation of the previous one that uses variables
 -- create the combinational logic in the same process as the registers.
 
-architecture ARCH4_2 of example is
+architecture ARCH4_2 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
     signal out1_r, out2_r      : std_logic_vector(WIDTH-1 downto 0);
@@ -459,7 +459,7 @@ begin
 end ARCH4_2;
 
 
-architecture ARCH4_3 of example is
+architecture ARCH4_3 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
     signal out1_r, out2_r      : std_logic_vector(WIDTH-1 downto 0);
@@ -496,7 +496,7 @@ begin
 end ARCH4_3;
 
 
-architecture ARCH5 of example is
+architecture ARCH5 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
     signal out1_r, out2_r      : std_logic_vector(WIDTH-1 downto 0);
@@ -538,7 +538,7 @@ end ARCH5;
 
 -- Illustrates a similar implementation using variables.
 
-architecture ARCH5_2 of example is
+architecture ARCH5_2 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
     signal out1_r, out2_r      : std_logic_vector(WIDTH-1 downto 0);
@@ -575,7 +575,7 @@ begin
 end ARCH5_2;
 
 
-architecture ARCH6 of example is
+architecture ARCH6 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
     signal out2_r              : std_logic_vector(WIDTH-1 downto 0);
@@ -610,7 +610,7 @@ end ARCH6;
 
 -- Illustrates a similar implementation using variables.
 
-architecture ARCH6_2 of example is
+architecture ARCH6_2 of seq_example is
 
     signal in1_r, in2_r, in3_r : std_logic_vector(WIDTH-1 downto 0);
     signal out2_r              : std_logic_vector(WIDTH-1 downto 0);
@@ -644,41 +644,25 @@ begin
 end ARCH6_2;
 
 
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
--- Top-level entity for evaluating all the examples above.
-
-entity seq_example is
-    generic(
-        WIDTH : positive := 8);
-    port (
-        clk  : in  std_logic;
-        rst  : in  std_logic;
-        in1  : in  std_logic_vector(WIDTH-1 downto 0);
-        in2  : in  std_logic_vector(WIDTH-1 downto 0);
-        in3  : in  std_logic_vector(WIDTH-1 downto 0);
-        out1 : out std_logic_vector(WIDTH-1 downto 0);
-        out2 : out std_logic_vector(WIDTH-1 downto 0));
-end seq_example;
+-- Default architecture for evaluating all the examples above.
 
 architecture default_arch of seq_example is
 begin
 
-    U_SEQ_EXAMPLE : entity work.example(ARCH1)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH2)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH3)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH3_2)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH3_2008)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH4)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH4_2)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH4_3)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH5)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH5_2)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH6)
-        --U_SEQ_EXAMPLE: entity work.example(ARCH6_2)      
+    -- Instructions: uncomment the architecture you want to evaluate.
+    
+    U_SEQ_EXAMPLE : entity work.seq_example(ARCH1)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH2)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH3)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH3_2)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH3_2008)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH4)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH4_2)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH4_3)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH5)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH5_2)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH6)
+        --U_SEQ_EXAMPLE: entity work.seq_example(ARCH6_2)      
         generic map (WIDTH => WIDTH)
         port map (
             clk  => clk,
