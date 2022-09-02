@@ -399,6 +399,109 @@ begin  -- arch4
 end arch4;
 
 
+-- In this architecture, we separate the output and flag logic so that
+-- the process only defines the output.
+
+architecture arch5 of alu1 is
+
+    constant C_ADD : std_logic_vector(1 downto 0) := "00";
+    constant C_SUB : std_logic_vector(1 downto 0) := "01";
+    constant C_AND : std_logic_vector(1 downto 0) := "10";
+    constant C_OR  : std_logic_vector(1 downto 0) := "11";
+
+    -- In this architecture, we can no longer use a variable because a
+    -- variable's scope is limited to a process. So, we need an extra signal
+    -- for the output. You might be tempted to just write to the output from
+    -- the process, and then read from it using concurrent statements. However,
+    -- that does not work pre-2008. Whenever I need to read from an output,
+    -- I just make a signal with the same name, and a _s suffix, which
+    -- signifies the purpose is just an extra signal to enable reading from the
+    -- output.
+    signal output_s : std_logic_vector(output'range);
+    
+begin
+
+    process(in0, in1, sel)
+    begin
+        case sel is
+            when C_ADD =>
+                output_s <= std_logic_vector(signed(in0) + signed(in1));
+                
+            when C_SUB =>
+                output_s <= std_logic_vector(signed(in0) - signed(in1));
+                
+            when C_AND =>
+                output_s <= in0 and in1;
+
+            when C_OR =>
+                output_s <= in0 or in1;
+                
+            when others => null;
+        end case;
+    end process;
+
+    pos  <= '1' when signed(output_s) > 0 else '0';
+    neg  <= '1' when signed(output_s) < 0 else '0';
+    zero <= '1' when signed(output_s) = 0 else '0';
+
+    output <= output_s;
+    
+end arch5;
+
+
+-- In this architecture, we make everything concurrent statements.
+
+architecture arch6 of alu1 is
+
+    constant C_ADD : std_logic_vector(1 downto 0) := "00";
+    constant C_SUB : std_logic_vector(1 downto 0) := "01";
+    constant C_AND : std_logic_vector(1 downto 0) := "10";
+    constant C_OR  : std_logic_vector(1 downto 0) := "11";
+
+    signal output_s : std_logic_vector(output'range);
+    
+begin
+
+    with sel select
+        output_s <= std_logic_vector(signed(in0) + signed(in1)) when C_ADD,
+        std_logic_vector(signed(in0) - signed(in1))             when C_SUB,
+        in0 and in1                                             when C_AND,
+        in0 or in1                                              when others;
+
+    pos  <= '1' when signed(output_s) > 0 else '0';
+    neg  <= '1' when signed(output_s) < 0 else '0';
+    zero <= '1' when signed(output_s) = 0 else '0';
+
+    output <= output_s;
+    
+end arch6;
+
+
+-- In VHDL 2008, you can read from outputs, so we no longer need the output_s
+-- signal.
+
+--architecture arch6_2008 of alu1 is
+
+--    constant C_ADD : std_logic_vector(1 downto 0) := "00";
+--    constant C_SUB : std_logic_vector(1 downto 0) := "01";
+--    constant C_AND : std_logic_vector(1 downto 0) := "10";
+--    constant C_OR  : std_logic_vector(1 downto 0) := "11";
+    
+--begin
+
+--    with sel select
+--        output <= std_logic_vector(signed(in0) + signed(in1)) when C_ADD,
+--        std_logic_vector(signed(in0) - signed(in1))           when C_SUB,
+--        in0 and in1                                           when C_AND,
+--        in0 or in1                                            when others;
+
+--    pos  <= '1' when signed(output) > 0 else '0';
+--    neg  <= '1' when signed(output) < 0 else '0';
+--    zero <= '1' when signed(output) = 0 else '0';
+    
+--end arch6_2008;
+
+
 --------------------------------------------------------------------------
 
 -- The following alu2 entity illustrates a more elegant approach to achieving
@@ -503,12 +606,15 @@ begin
 
     -- INSTRUCTIONS: uncomment the architecture and/or entity that you want
     -- to evaluate.
-    
+
     --U_ALU : entity work.alu1(bad)
-        U_ALU : entity work.alu1(arch1)
+    U_ALU : entity work.alu1(arch1)
         --U_ALU : entity work.alu1(arch2)
         --U_ALU : entity work.alu1(arch3)
         --U_ALU : entity work.alu1(arch4)
+        --U_ALU : entity work.alu1(arch5)
+        --U_ALU : entity work.alu1(arch6)
+        --U_ALU : entity work.alu1(arch6_2008)
         generic map (WIDTH => WIDTH)
         port map (in0    => in0,
                   in1    => in1,
@@ -518,15 +624,15 @@ begin
                   zero   => zero,
                   output => output);
 
-     ---------------------------------------------------------
-     -- Uncomment everything below if using the alu2 entity. Make sure to
-     -- comment out everything above also.
-        
+    ---------------------------------------------------------
+    -- Uncomment everything below if using the alu2 entity. Make sure to
+    -- comment out everything above also.
+
     --alu_sel <= ADD_SEL when sel = ADD_SEL'encoding else
     --           SUB_SEL when sel = SUB_SEL'encoding else
     --           AND_SEL when sel = AND_SEL'encoding else
     --           OR_SEL;
-    
+
     --U_ALU : entity work.alu2(arch1)
     --    generic map (WIDTH => WIDTH)
     --    port map (in0    => in0,
@@ -537,5 +643,5 @@ begin
     --              zero   => zero,
     --              output => output);
 
-    
+
 end default_arch;
