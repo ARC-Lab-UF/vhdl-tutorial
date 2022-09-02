@@ -19,13 +19,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity mux_2x1 is
+entity mux2x1 is
     port(
         in0, in1, sel : in  std_logic;
         output        : out std_logic);
-end mux_2x1;
+end mux2x1;
 
-architecture default_arch of mux_2x1 is
+architecture default_arch of mux2x1 is
 begin
     output <= in0 when sel = '0' else in1;
 end default_arch;
@@ -39,19 +39,19 @@ end default_arch;
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity mux_4x1 is
+entity mux4x1 is
     port(
         inputs : in  std_logic_vector(3 downto 0);
         sel    : in  std_logic_vector(1 downto 0);
         output : out std_logic
         );
-end mux_4x1;
+end mux4x1;
 
 -- There are two different syntactic options for structural architectures.
 -- The following architecture shows my recommended way, which requires the
 -- least amount of code
 
-architecture STR1 of mux_4x1 is
+architecture STR1 of mux4x1 is
 
     -- Signals for internal connections between muxes.
     signal mux1_out, mux2_out : std_logic;
@@ -66,7 +66,7 @@ begin
     -- keyword referring to the "working" library or directory, which for now
     -- you can think of as the directory where all your code gets compiled.
     -- So, the simulator or synthesis tool is looking for an entity in work
-    -- called mux_2x1 to instantiate. If it doesn't exist, you will get an
+    -- called mux2x1 to instantiate. If it doesn't exist, you will get an
     -- error.
     --
     -- Next, you need to specify the I/O connections for the instance, which is
@@ -81,23 +81,23 @@ begin
     -- corresponds to:
     --    instantiated_entity_signal_name => local_signal name
     -- which in this case would be:
-    --    mux_2x1_signal_name => mux4x1_signal_name
+    --    mux2x1_signal_name => mux4x1_signal_name
     
-    U_MUX1 : entity work.mux_2x1 port map (
+    U_MUX1 : entity work.mux2x1 port map (
         in0    => inputs(2),
         in1    => inputs(3),
         sel    => sel(0),
         output => mux1_out
         );
 
-    U_MUX2 : entity work.mux_2x1 port map (
+    U_MUX2 : entity work.mux2x1 port map (
         in0    => inputs(0),
         in1    => inputs(1),
         sel    => sel(0),
         output => mux2_out
         );
 
-    U_MUX3 : entity work.mux_2x1 port map (
+    U_MUX3 : entity work.mux2x1 port map (
         in0    => mux2_out,
         in1    => mux1_out,
         sel    => sel(1),
@@ -109,7 +109,7 @@ end STR1;
 
 -- This archicture shows an alternative way instantiating other entities.
 
-architecture STR2 of mux_4x1 is
+architecture STR2 of mux4x1 is
 
     -- In the previous architecture, we are telling the compiler to look in
     -- a specific place for an entity with a specific name. Most of the time
@@ -124,7 +124,7 @@ architecture STR2 of mux_4x1 is
     -- of a circuit whose definition will be found by the compiler later.
     --
     -- Here we create a component for our 2:1 mux. It has the exact same name
-    -- and port as the mux_2x1 entity. In fact, if you ever need a component
+    -- and port as the mux2x1 entity. In fact, if you ever need a component
     -- copy and paste the entity, change entity to component, and get rid of the
     -- "is" keyword.
     --
@@ -136,7 +136,7 @@ architecture STR2 of mux_4x1 is
     --
     -- I generally only use components when instantiating vendor IP cores.
     
-    component mux_2x1
+    component mux2x1
         port(
             in0    : in  std_logic;
             in1    : in  std_logic;
@@ -151,21 +151,21 @@ begin
 
     -- When using components, we simply omit the entity work. syntax because
     -- we are now instantiating components as opposed to entities.    
-    U_MUX1 : mux_2x1 port map (
+    U_MUX1 : mux2x1 port map (
         in0    => inputs(2),
         in1    => inputs(3),
         sel    => sel(0),
         output => mux1_out
         );
 
-    U_MUX2 : mux_2x1 port map (
+    U_MUX2 : mux2x1 port map (
         in0    => inputs(0),
         in1    => inputs(1),
         sel    => sel(0),
         output => mux2_out
         );
 
-    U_MUX3 : mux_2x1 port map (
+    U_MUX3 : mux2x1 port map (
         in0    => mux2_out,
         in1    => mux1_out,
         sel    => sel(1),
@@ -176,26 +176,13 @@ end STR2;
 
 
 -------------------------------------------------------------------------
-
-library ieee;
-use ieee.std_logic_1164.all;
-
--- Entity: mux4x1:
--- Description: Top-level entity for evaluating the different architectures.
-
-entity mux4x1 is
-    port(
-        inputs : in  std_logic_vector(3 downto 0);
-        sel    : in  std_logic_vector(1 downto 0);
-        output : out std_logic
-        );
-end mux4x1;
+-- Default architecture for evaluating the different implementations.
 
 architecture default_arch of mux4x1 is
 begin
     -- INSTRUCTIONS: change the comments to evaluate each architecture.
-    U_MUX : entity work.mux_4x1(STR1)
-        --U_MUX : entity work.mux_4x1(STR2)
+    U_MUX : entity work.mux4x1(STR1)
+        --U_MUX : entity work.mux4x1(STR2)
         port map (
             inputs => inputs,
             sel    => sel,
