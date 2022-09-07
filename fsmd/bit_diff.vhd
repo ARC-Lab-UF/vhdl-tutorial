@@ -6,7 +6,7 @@
 -- different implementations.
 --
 -- The algorithm being implemented is a bit-difference calculator. Given a
--- parameter for a specified WIDTH, the modules calculate the difference
+-- parameter for a specified WIDTH, the architectures calculate the difference
 -- between the number of 1s and 0s. E.g., if there are 3 more 1s than 0s, the
 -- out is 3. If there are 3 more 0s than 1s, the output is -3.
 --
@@ -35,7 +35,7 @@
 -- clk   : Clock
 -- rst   : Asynchronous reset
 -- go    : Asserting starts the calculator for the specific data input. Has no
---         impact when the module is currently active (!done).
+--         impact when the entity is currently active (!done).
 -- data  : The input to be used to calculate the bit difference
 
 --- OUTPUTS ---
@@ -71,7 +71,7 @@ end bit_diff;
 -- Description: A 1-process FSMD implementation of the calculator.
 --
 -- See the FSMD illustration in bit_diff.pdf for a graphical representation
--- of this module.
+-- of this architecture.
 
 architecture fsmd_1p of bit_diff is
     -- Like the FSM, we define the states using a custom type.
@@ -200,9 +200,9 @@ end fsmd_1p;
 -- Description: This is an alternative to the previous 1-process FSMD that 
 -- shrinks the FSM down to two states. Which one is better likely depends on
 -- the targeted FPGA and the synthesis tool being used. In general, don't worry
--- about minor optimizations such as this until the module becomes a bottleneck
--- in a larger application. It is counter-intuitive, but pre-optimizing a 
--- module can often decrease quality of a larger application due to increased
+-- about minor optimizations such as this until the entity becomes a bottleneck
+-- in a larger application. It is counter-intuitive, but pre-optimizing an 
+-- entity can often decrease quality of a larger application due to increased
 -- routing complexity. For anything that isn't a bottleneck, I generally prefer
 -- an implementation that provides a decent balance of brevity and readability.
 -- When I do optimize, I usually have a specific tradeoff in mind. e.g. Minimize
@@ -540,7 +540,7 @@ begin
                 -- of go.
                 --
                 -- One reason to avoid clearing done within the same cycle as
-                -- go is that if the logic for go outside this module depends
+                -- go is that if the logic for go outside this entity depends
                 -- on done, it creates a combinational loop. The 1-cycle delay
                 -- avoids that problem.
                 if (go = '1') then
@@ -775,7 +775,7 @@ end fsmd_2p_4;
 
 
 -- Architecture: fsmd_3p
--- Description:  A modification of the previous module to use 3-processes.
+-- Description:  A modification of the previous architecture to use 3-processes.
 --
 -- NOTE: Personally, I have never encountered an example where I would use this
 -- strategy.
@@ -1008,9 +1008,9 @@ end fsmd_4p;
 
 -- FINAL THOUGHTS ON FSMD MODELS:
 -- According to my tests on a MAX 10 FPGA, the model you use has no impact on
--- the resource requirements. Modules bit_diff_fsmd_2p_2 through 
--- bit_diff_fsmd_4p are all conceptually identical, just using different numbers
--- of processes. All 5 of these modules synthesize to the exact same resources.
+-- the resource requirements. Architectures fsmd_2p_2 through 
+-- fsmd_4p are all conceptually identical, just using different numbers
+-- of processes. All of these synthesize to the exact same resources.
 -- I have not tested timing differences yet, but I suspect those would be
 -- identical also.
 --
