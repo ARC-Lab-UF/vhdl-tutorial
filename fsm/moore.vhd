@@ -16,9 +16,25 @@
 -- Moore FSM has outputs that are solely a function of the current state.
 -- Note that you should always draw the FSM first and then convert it to code.
 
--- Module: moore_1p
--- Description: This module implements the Moore FSM shown in fsm.pdf using
--- the 1-process model. It is important to note that the 1-process model
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity moore is
+    port (
+        clk, rst, en : in  std_logic;
+        output       : out std_logic_vector(3 downto 0)
+        );
+end moore;
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 1-process model examples
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+-- Architecture: one_process_1
+-- Description: This architecture implements the Moore FSM shown in fsm.pdf
+-- using the 1-process model. It is important to note that the 1-process model
 -- will delay all outputs by 1 cycle due to the extra register. This register
 -- has its uses (e.g. preventing glitches), but in general is problematic for
 -- any circuit requiring control signals within the same cycle.
@@ -28,23 +44,7 @@
 -- internal signals for each register, which makes it much harder to
 -- accidentally make something a register.
 
-library ieee;
-use ieee.std_logic_1164.all;
-
-entity moore_example is
-    port (
-        clk, rst, en : in  std_logic;
-        output       : out std_logic_vector(3 downto 0)
-        );
-end moore_example;
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
--- 1-process model examples
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-architecture one_process_1 of moore_example is
+architecture one_process_1 of moore is
     -- There are numerous ways to do state machines, but I recommend declaring
     -- your own type that defines each possible state. This makes the code more
     -- readable, and the state names will appear in the waveform simulation.
@@ -134,7 +134,7 @@ end one_process_1;
 
 -- This architecture show a simplified version of the previous architecture.
 
-architecture one_process_2 of moore_example is
+architecture one_process_2 of moore is
 
     type state_t is (STATE0, STATE1, STATE2, STATE3);
     signal state_r : state_t;
@@ -196,7 +196,7 @@ begin
 end one_process_2;
 
 
-architecture one_process_3 of moore_example is
+architecture one_process_3 of moore is
 
     type state_t is (STATE0, STATE1, STATE2, STATE3);
     signal state_r  : state_t;
@@ -293,7 +293,7 @@ end one_process_3;
 -- provided testbench the output of the 1-process model is always 1 cycle
 -- behind the 2-process model, which is caused by the register on the output.
 
-architecture two_process_1 of moore_example is
+architecture two_process_1 of moore is
 
     type state_t is (STATE0, STATE1, STATE2, STATE3);
     signal state_r, next_state : state_t;  -- the 2-process model
@@ -386,7 +386,7 @@ end two_process_1;
 
 -- This is a simplified version of the previous architecture.
 
-architecture two_process_2 of moore_example is
+architecture two_process_2 of moore is
 
     type state_t is (STATE0, STATE1, STATE2, STATE3);
     signal state_r, next_state : state_t;
@@ -455,7 +455,7 @@ end two_process_2;
 -- This is the same code as the previous architecture, but with a different
 -- naming convention.
 
-architecture two_process_3 of moore_example is
+architecture two_process_3 of moore is
 
     type state_t is (STATE0, STATE1, STATE2, STATE3);
 
@@ -532,17 +532,7 @@ end two_process_3;
 
 
 -------------------------------------------------------------------------------
--- Top-level entity for evaluating all the architectures.
-
-library ieee;
-use ieee.std_logic_1164.all;
-
-entity moore is
-    port (
-        clk, rst, en : in  std_logic;
-        output       : out std_logic_vector(3 downto 0)
-        );
-end moore;
+-- Default architecture for evaluating all the architectures.
 
 architecture default_arch of moore is
 begin
@@ -550,12 +540,12 @@ begin
     -- Note that the 1-process version cause the testbench to fail because
     -- of the 1-cycle delay on the output.
     
-    --U_MOORE : entity work.moore_example(one_process_1)
-    --U_MOORE : entity work.moore_example(one_process_2)
-    --U_MOORE : entity work.moore_example(one_process_3)
-    U_MOORE : entity work.moore_example(two_process_1)
-    --U_MOORE : entity work.moore_example(two_process_2)
-    --U_MOORE : entity work.moore_example(two_process_3)
+    --U_MOORE : entity work.moore(one_process_1)
+    --U_MOORE : entity work.moore(one_process_2)
+    --U_MOORE : entity work.moore(one_process_3)
+    U_MOORE : entity work.moore(two_process_1)
+    --U_MOORE : entity work.moore(two_process_2)
+    --U_MOORE : entity work.moore(two_process_3)
 
         port map (
             clk => clk,

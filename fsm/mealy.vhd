@@ -5,7 +5,7 @@
 -- outputs are solely associated with states, a Mealy FSM has outputs that are
 -- a function of the state and the input, which means outputs get assigned on
 -- transitions. See the mealy examples in fsm.pdf for an illustration of the
--- FSMs in each module.
+-- FSMs in each architecture.
 --
 -- This example omits a 1-process model, since I don't remember using it unless
 -- you specifically want registered outputs.
@@ -20,18 +20,18 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
--- Module: mealy_example
--- Description: 2-process implementation of the Mealy FSM shown in
--- fsm.pdf
-
-entity mealy_example is
+entity mealy is
     port (
         clk, rst, go, ack : in  std_logic;
         en, done          : out std_logic
         );
-end mealy_example;
+end mealy;
 
-architecture two_process of mealy_example is
+-- Architecture: two_process
+-- Description: 2-process implementation of the Mealy FSM shown in
+-- fsm.pdf
+
+architecture two_process of mealy is
 
     type state_t is (START, COMPUTE, FINISH, RESTART);
     signal state_r, next_state : state_t;
@@ -98,7 +98,7 @@ begin
 end two_process;
 
 
-architecture hybrid of mealy_example is
+architecture hybrid of mealy is
 
     type state_t is (START, COMPUTE, FINISH, RESTART);
     signal state_r, next_state : state_t;
@@ -177,23 +177,13 @@ begin
 end hybrid;
 
 ----------------------------------------------------------------------------
--- Top-level entity for evaluating the different architectures.
-
-library ieee;
-use ieee.std_logic_1164.all;
-
-entity mealy is
-    port (
-        clk, rst, go, ack : in  std_logic;
-        en, done          : out std_logic
-        );
-end mealy;
+-- Default architecture for evaluating the different architectures.
 
 architecture default_arch of mealy is
 begin
 
-    U_MEALY : entity work.mealy_example(two_process)
-        --U_MEALY : entity work.mealy_example(hybrid)
+    U_MEALY : entity work.mealy(two_process)
+        --U_MEALY : entity work.mealy(hybrid)
         port map (
             clk  => clk,
             rst  => rst,
@@ -202,7 +192,5 @@ begin
             en   => en,
             done => done
             );
-
-
 
 end default_arch;
