@@ -4,7 +4,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
--- Entity: priority_encoder_4in_if
+-- Entity: priority_encoder_4in
 -- Description: implements a 4 input (2 output) priority encoder with a valid
 -- output that is asserted when any of the inputs are asserted. The MSB of the
 -- input has the highest priority, and the LSB the lowest.
