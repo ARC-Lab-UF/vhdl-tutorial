@@ -353,7 +353,7 @@ begin
     begin
         -- With std_logic_arith and *without* std_logic_unsigned, we have to
         -- explicitly convert the inputs to unsigned before adding. This code
-        -- uses conv_unsigned (the std_logic_arithm equivalent to resize) to
+        -- uses conv_unsigned (the std_logic_arith equivalent to resize) to
         -- sign extend the inputs to create the carry.
         --
         -- It might seem confusing that the code casts the inputs to unsigned
