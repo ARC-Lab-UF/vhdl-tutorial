@@ -8,8 +8,8 @@ As with all circuits, first design the combinational circuit, then write the cod
 
 # Coding Guidelines for Combinational Logic
 
-The exmples below give many suggestions, but there are two guidelines that should never be violated for combinational logic:
- 1. All inputs must be in the sensitivty list for a process, or there likely will be difference between simulation and synthesis.
+The examples below give many suggestions, but there are two guidelines that should never be violated for combinational logic:
+ 1. All inputs must be in the sensitivity list for a process, or there likely will be difference between simulation and synthesis.
  1. All outputs must be defined on all paths through a process, or latches will be created during synthesis.
 
 # Suggested Study Order
