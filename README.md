@@ -27,5 +27,6 @@ One other issue to realize is that most VHDL code is written for the 1993 standa
 1. [Sequential Logic](./sequential)
 1. [Finite-State Machines](./fsm)
 1. [Finite-State Machines + Datapaths](./fsmd)
+1. [RAM Inference Templates](./ram)
 1. [Misc (TBD))]()
 1. [Testbenches (TBD)]()
