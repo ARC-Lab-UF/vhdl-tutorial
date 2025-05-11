@@ -33,14 +33,14 @@ end ram_tdp;
 
 architecture default_arch of ram_tdp is
     type ram_t is array (0 to 2**ADDR_WIDTH-1) of std_logic_vector(DATA_WIDTH-1 downto 0);
-    signal ram                : ram_t;
+    shared variable ram       : ram_t;
     -- Tell Quartus what type of RAM to use
     attribute ramstyle        : string;
-    attribute ramstyle of ram : signal is STYLE;
+    attribute ramstyle of ram : variable is STYLE;
 
     -- Tell Vivado what type of RAM to use
     attribute ram_style        : string;
-    attribute ram_style of ram : signal is STYLE;
+    attribute ram_style of ram : variable is STYLE;
 
     signal rd_data_ram_a, rd_data_ram_b : std_logic_vector(DATA_WIDTH-1 downto 0);
 begin
@@ -49,10 +49,10 @@ begin
         if (rising_edge(clk)) then
             if (en_a = '1') then
                 if (wr_en_a = '1') then
-                    ram(to_integer(unsigned(addr_a))) <= wr_data_a;
+                    ram(to_integer(unsigned(addr_a))) := wr_data_a;
                 else
                     rd_data_ram_a <= ram(to_integer(unsigned(addr_a)));
-                end if;                
+                end if;
             end if;
         end if;
     end process;
@@ -62,10 +62,10 @@ begin
         if (rising_edge(clk)) then
             if (en_b = '1') then
                 if (wr_en_b = '1') then
-                    ram(to_integer(unsigned(addr_b))) <= wr_data_b;
+                    ram(to_integer(unsigned(addr_b))) := wr_data_b;
                 else
                     rd_data_ram_b <= ram(to_integer(unsigned(addr_b)));
-                end if;                
+                end if;
             end if;
         end if;
     end process;
@@ -74,10 +74,10 @@ begin
         process (clk)
         begin
             if (rising_edge(clk)) then
-                if (en_a= '1') then
+                if (en_a = '1') then
                     rd_data_a <= rd_data_ram_a;
                 end if;
-                if (en_b= '1') then
+                if (en_b = '1') then
                     rd_data_b <= rd_data_ram_b;
                 end if;
             end if;
