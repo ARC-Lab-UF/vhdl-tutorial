@@ -16,3 +16,6 @@ that work on most FPGAs from Xilinx/AMD and Intel/Altera.
 
 1. [ram_tdp](ram_tdp.vhd)    
     - Explains a generalized true dual-port RAM inference template.
+
+1. [RAM with initialization upon bitstream configuration](init)
+
